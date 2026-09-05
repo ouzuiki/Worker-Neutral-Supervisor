@@ -1,0 +1,15 @@
+{
+  "name": "worker-neutral-supervisor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Worker-neutral Supervisor contracts, policy engine, and cross-worker tooling shared by the tri-bridge fleet.",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "npm run test:supervisor-policy && npm run test:archify-safe",
+    "test:supervisor-policy": "node --test supervisor-policy/policy.test.mjs supervisor-policy/telemetry.test.mjs supervisor-policy/p3.test.mjs supervisor-policy/p3-remote.test.mjs supervisor-policy/ref-p1.test.mjs supervisor-policy/execution-plan.test.mjs supervisor-policy/operational-smoke.test.mjs",
+    "test:archify-safe": "node --test test/archify-safe.test.mjs"
+  }
+}

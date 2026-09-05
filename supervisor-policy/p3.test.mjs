@@ -43,6 +43,19 @@ test("P3 canonical Supervisor workflow order is frozen", () => {
     "repository_final_state_verification",
     "close",
   ]);
+
+  const executionSupervision = workflowContract.policy_bindings.execution_supervision;
+  assert.equal(typeof executionSupervision, "string");
+  assert.ok(
+    executionSupervision.includes("TRI-BRIDGE-CONTRACT-V1.md#Worker-neutral-Control-Contract-v1"),
+    "execution_supervision must bind the Tri-Bridge control contract",
+  );
+  assert.ok(
+    executionSupervision.includes(
+      "supervisor-policy/reasoning-watchdog-binding.mjs#evaluateWatchdogBinding",
+    ),
+    "execution_supervision must bind the reasoning watchdog binding",
+  );
 });
 
 test("P3 completion gate freezes the intended completion order", () => {

@@ -42,16 +42,18 @@ AR2 is `closed_with_holds`, not PASS and not failure. See
   filename is unpredictable in advance cannot be expressed under that
   model today. This is a harness capability gap, not an Archify defect,
   and is not resolved by granting broader unscoped shell approval.
-- **Codex**: `hold` / `external_quota` — the Plus Codex secondary (7-day)
-  rate-limit window was at 100% used / 0% remaining at observation time,
-  externally blocking turn execution, while the primary 5h window was
-  untouched. Reset credits exist and were deliberately not spent. This is
-  a quota-timing fact, not a statement about Codex/Archify compatibility.
+- **Codex**: `pass` — real `deliver` against the same upstream example
+  spec, promoted to `.artifacts/archify/codex.html` under
+  `/tmp/archify-ar2-codex`. The receipt records wrapper/profile/receipt
+  version `1.0.0`, the verified `v2.16.0` runtime identity, child exit code
+  `0`, and `validation.basicArtifact=passed`. Independent `sha256` and
+  `wc` checks matched the receipt, the target tree contained only the final
+  artifact, and the repository was clean before these evidence edits.
 
-Net: one real, independently verifiable artifact delivery exists through
-the shared wrapper. Three-worker portability is **not** established —
-that requires real safe-deliver evidence from all three lanes, which AR2
-does not have.
+Net: two real safe lanes (Claude and Codex) now have independently
+verifiable artifact deliveries through the shared wrapper. All-three
+portability is **not** established — that requires real safe-deliver
+evidence from Pi as well, and Pi remains HOLD.
 
 ## Next capability gap (explicitly out of scope for AR3)
 
@@ -65,7 +67,3 @@ transactional-command capability — evaluated on its own merits for any
 tool that needs it, not just Archify. AR3 explicitly does **not**
 prescribe an Archify-specific or Pi-specific bypass or extension to close
 this gap, and does not treat it as an AR3 blocker.
-
-Similarly, the Codex hold is simply pending quota availability. Rerunning
-the Claude-lane-equivalent smoke test on Codex once the 7-day window
-resets is the entire remaining action; it is not an AR3 blocker either.

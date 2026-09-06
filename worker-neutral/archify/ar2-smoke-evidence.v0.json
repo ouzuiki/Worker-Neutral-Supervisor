@@ -72,12 +72,49 @@
       ]
     },
     "codex": {
-      "status": "hold",
-      "holdReason": "external_quota",
-      "detail": "Plus Codex rate-limit snapshot: primary 5h window used 0% / remaining 100%; secondary 7d window used 100% / remaining 0%. Turn execution is externally blocked by the secondary window. Reset credits exist but were deliberately not consumed.",
-      "prohibitedInterpretations": [
-        "do-not-claim-codex-incompatibility"
-      ]
+      "status": "pass",
+      "kind": "real_deliver",
+      "spec": "archify/examples/web-app.architecture.json",
+      "specSource": "upstream-exact-example",
+      "target": "/tmp/archify-ar2-codex",
+      "finalRelativePath": ".artifacts/archify/codex.html",
+      "receipt": {
+        "receiptVersion": "1.0.0",
+        "wrapperVersion": "1.0.0",
+        "profileVersion": "1.0.0",
+        "archify": {
+          "pin": "v2.16.0",
+          "runtime": "/home/ouzuiki/.local/share/archify-runtime/v2.16.0/archify/bin/archify.mjs",
+          "identityStatus": "verified",
+          "detectedVersion": "2.16.0"
+        },
+        "spec": {
+          "sha256": "483350f5297df682aba4e4a0fa491307ce3d3abd725ae4df07fab177490752cf",
+          "bytes": 3793
+        },
+        "artifact": {
+          "sha256": "d2ace03a19456e1ba1e24ed5ec2ef8de495190cbf1f59d54ab9d138d460a5ab8",
+          "bytes": 715210
+        },
+        "child": {
+          "exitCode": 0,
+          "updateCheckDisabled": true
+        },
+        "validation": {
+          "basicArtifact": "passed"
+        },
+        "claims": {
+          "deterministicSchema": "not_separately_verified",
+          "runtimeBrowser": "not_performed",
+          "perceptual": "not_performed",
+          "human": "not_performed"
+        }
+      },
+      "independentChecks": {
+        "sha256AndWcMatchedReceipt": true,
+        "targetTreeOnly": ".artifacts/archify/codex.html",
+        "repoCleanBeforeEvidenceEdits": true
+      }
     }
   },
   "overall": {
@@ -85,6 +122,6 @@
     "notPass": true,
     "notFailure": true,
     "threeWorkerPortabilityEstablished": false,
-    "note": "One safe lane (Claude) produced a real, verified artifact delivery through the shared wrapper. This establishes that the wrapper and runtime pin work for at least one worker; it does not establish three-worker portability. Pi and Codex remain HOLD for reasons external to Archify correctness."
+    "note": "Pi remains HOLD for a reason external to Archify correctness. Two real safe lanes (Claude and Codex) produced verified artifact deliveries through the shared wrapper, establishing the wrapper and runtime pin on two workers but not all-three portability."
   }
 }

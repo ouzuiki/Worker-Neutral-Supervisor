@@ -174,16 +174,20 @@ wrapper. Full detail is in `ar2-smoke-evidence.v0.json`; summary:
   unpredictable same-directory candidate path cannot be safely expressed
   under that model today. This is a harness gap, not an Archify failure,
   and is not resolved by an unscoped shell-approval bypass.
-- **Codex — HOLD (`external_quota`).** At observation time the Plus Codex
-  secondary (7-day) rate-limit window was 100% used / 0% remaining, while
-  the primary 5h window was untouched (0% used). Reset credits exist and
-  were deliberately not consumed. This reflects quota timing, not
-  Codex/Archify incompatibility.
+- **Codex — PASS.** Real `deliver` call against the same upstream example
+  spec, target `/tmp/archify-ar2-codex`, promoted to
+  `.artifacts/archify/codex.html`. Receipt versions are `1.0.0`; the
+  Archify pin is `v2.16.0` with verified detected version `2.16.0`. The
+  spec and artifact hashes/byte counts match the Claude evidence above,
+  child exit code is `0`, and `validation.basicArtifact=passed`. Claims
+  remain at their honest defaults. Independent `sha256`/`wc` checks
+  matched the receipt, the target tree contained only the final artifact,
+  and the repo was clean before these evidence edits.
 
-**Overall AR2 status: `closed_with_holds`.** One safe lane established a
-real, verifiable artifact; three-worker portability is **not**
-established and must not be claimed until Pi and Codex each produce real
-safe-deliver evidence of their own.
+**Overall AR2 status: `closed_with_holds`.** Two real safe lanes (Claude
+and Codex) are established, but all-three portability is **not**
+established and must not be claimed until Pi produces real safe-deliver
+evidence of its own.
 
 ## AR3 — artifact production contract v0 (PASS)
 

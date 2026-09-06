@@ -1,9 +1,9 @@
 {
   "documentId": "archify-ar2-smoke-evidence",
-  "documentVersion": "0.1.0",
+  "documentVersion": "0.2.0",
   "stage": "AR2",
-  "status": "closed_with_holds",
-  "description": "Observed evidence from the AR2 cross-worker smoke pass of the shared archify-safe.mjs wrapper. Encodes only what was actually observed; does not claim three-worker portability.",
+  "status": "pass",
+  "description": "Observed evidence from the AR2 cross-worker smoke pass of the shared archify-safe.mjs wrapper. Encodes only what was actually observed. Three-worker portability is now established by real safe-deliver evidence from all three lanes (Claude, Codex, Pi). Pi was previously HOLD(harness_capability); see pi.holdResolution. Browser/perceptual/human claims remain not upgraded.",
   "runtimeProvisioning": {
     "owner": "user",
     "controlLocation": "outside-repo",
@@ -63,12 +63,67 @@
       "writeConfinementObserved": "writes-observed-only-under-target-.artifacts/archify"
     },
     "pi": {
-      "status": "hold",
-      "holdReason": "harness_capability",
-      "detail": "Current LPB mutationScope.files is canonical exact-file Set membership only; no directory-prefix/glob support. When mutationScope is active, bash/powershell are categorically blocked as LPB_MUTATION_SCOPE_UNSUPPORTED_TOOL. Read mode exposes no shell/execution tool in the actual capability probe. A transactional CLI writer with an unpredictable same-directory candidate path cannot be safely expressed today without changing the LPB capability model.",
+      "status": "pass",
+      "kind": "real_deliver",
+      "priorStatus": "hold",
+      "priorHoldReason": "harness_capability",
+      "priorHoldDetail": "At AR2 time, LPB mutationScope.files was canonical exact-file Set membership only; no directory-prefix/glob support. When mutationScope was active, bash/powershell were categorically blocked as LPB_MUTATION_SCOPE_UNSUPPORTED_TOOL, and read mode exposed no shell/execution tool in the actual capability probe. A transactional CLI writer with an unpredictable same-directory candidate path could not be safely expressed without changing the LPB capability model.",
+      "holdResolution": "Resolved by a generic LPB runtime-profile plus a safe managed Bash/transaction capability, together with the exact-file missing-parent transaction verifier fix. No Pi-specific or Archify-specific bypass was used, and no unscoped shell-approval bypass was used.",
+      "spec": "archify/examples/web-app.architecture.json",
+      "specSource": "upstream-exact-example",
+      "wrapperCommand": "node scripts/archify-safe.mjs deliver --cwd . --runtime /lpb-runtime/archify/bin/archify.mjs --type architecture --spec /lpb-runtime/archify/examples/web-app.architecture.json --name pi.html",
+      "finalRelativePath": ".artifacts/archify/pi.html",
+      "lpbTransactionTerminal": {
+        "ok": true,
+        "status": "promoted",
+        "appliedPaths": [".artifacts", ".artifacts/archify", ".artifacts/archify/pi.html"]
+      },
+      "gitSafety": {
+        "finalPass": true,
+        "newDirtyPaths": [".artifacts/archify/pi.html"],
+        "unexpectedPaths": []
+      },
+      "receipt": {
+        "receiptVersion": "1.0.0",
+        "wrapperVersion": "1.0.0",
+        "profileVersion": "1.0.0",
+        "archify": {
+          "pin": "v2.16.0",
+          "identityStatus": "verified",
+          "detectedVersion": "2.16.0"
+        },
+        "spec": {
+          "sha256": "483350f5297df682aba4e4a0fa491307ce3d3abd725ae4df07fab177490752cf",
+          "bytes": 3793
+        },
+        "artifact": {
+          "sha256": "d2ace03a19456e1ba1e24ed5ec2ef8de495190cbf1f59d54ab9d138d460a5ab8",
+          "bytes": 715210
+        },
+        "child": {
+          "exitCode": 0,
+          "updateCheckDisabled": true
+        },
+        "validation": {
+          "basicArtifact": "passed"
+        },
+        "claims": {
+          "deterministicSchema": "not_separately_verified",
+          "runtimeBrowser": "not_performed",
+          "perceptual": "not_performed",
+          "human": "not_performed"
+        }
+      },
+      "independentChecks": {
+        "sha256AndWcMatchedReceipt": true,
+        "regularNonSymlinkFile": true,
+        "targetTreeOnly": ".artifacts/archify/pi.html",
+        "onlyUntrackedFile": ".artifacts/archify/pi.html"
+      },
       "prohibitedInterpretations": [
         "do-not-propose-unscoped-shell-approval-bypass",
-        "do-not-call-this-an-archify-failure"
+        "do-not-call-this-an-archify-failure",
+        "do-not-inflate-browser-perceptual-or-human-claims"
       ]
     },
     "codex": {
@@ -118,10 +173,11 @@
     }
   },
   "overall": {
-    "status": "closed_with_holds",
-    "notPass": true,
+    "status": "pass",
+    "notPass": false,
     "notFailure": true,
-    "threeWorkerPortabilityEstablished": false,
-    "note": "Pi remains HOLD for a reason external to Archify correctness. Two real safe lanes (Claude and Codex) produced verified artifact deliveries through the shared wrapper, establishing the wrapper and runtime pin on two workers but not all-three portability."
+    "threeWorkerPortabilityEstablished": true,
+    "priorStatus": "closed_with_holds",
+    "note": "All three lanes (Claude, Codex, Pi) produced verified real safe-deliver artifacts through the one shared wrapper, establishing three-worker portability of the wrapper and the v2.16.0 runtime pin. Pi was previously HOLD(harness_capability) for a reason external to Archify correctness; that hold was resolved by a generic LPB runtime-profile plus a safe managed Bash/transaction capability and the exact-file missing-parent transaction verifier fix, with no Pi-specific or Archify-specific bypass. Browser, perceptual, and human claims remain not_performed and are not upgraded by this result."
   }
 }

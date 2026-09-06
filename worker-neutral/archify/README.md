@@ -12,7 +12,7 @@ Files:
   state machine and required-evidence contract.
 - `ar2-smoke-evidence.v0.json` — AR2 observed cross-worker smoke evidence.
 - `AR3.md` — AR3 explanation of the production state machine, AR2 outcome,
-  and the next capability gap.
+  and the now-resolved capability gap (kept as architectural history).
 - This `README.md`.
 
 Shared wrapper implementation lives at `scripts/archify-safe.mjs`
@@ -24,7 +24,7 @@ Shared wrapper implementation lives at `scripts/archify-safe.mjs`
 |---|---|
 | AR0 — admission profile | PASS |
 | AR1 — wrapper (`scripts/archify-safe.mjs`) | PASS (13/13 focused adversarial tests) |
-| AR2 — cross-worker smoke | `closed_with_holds` (not PASS, not failure) |
+| AR2 — cross-worker smoke | PASS (all three lanes real safe-deliver; Pi's prior HOLD resolved) |
 | AR3 — artifact production contract v0 | PASS |
 
 ## Upstream identity and installation
@@ -149,10 +149,11 @@ detectedVersion } }`. `deliver` produces a full receipt (`receiptVersion`,
 This is the one and only wrapper entrypoint; there is no per-worker
 implementation.
 
-## AR2 — cross-worker smoke (closed_with_holds)
+## AR2 — cross-worker smoke (PASS)
 
 Codex, Claude, and Pi were each evaluated against the same shared
-wrapper. Full detail is in `ar2-smoke-evidence.v0.json`; summary:
+wrapper, and all three now have real safe-deliver evidence. Full detail
+is in `ar2-smoke-evidence.v0.json`; summary:
 
 - **Claude — PASS.** Real `deliver` call against the upstream example
   spec `archify/examples/web-app.architecture.json`, target
@@ -166,14 +167,36 @@ wrapper. Full detail is in `ar2-smoke-evidence.v0.json`; summary:
   not_separately_verified`; `runtimeBrowser`/`perceptual`/`human:
   not_performed`). Writes were observed only under the target's
   `.artifacts/archify`.
-- **Pi — HOLD (`harness_capability`).** Pi's current LPB `mutationScope`
-  is exact-file-Set membership only, with no directory-prefix/glob
-  support; when `mutationScope` is active, shell tools are categorically
-  blocked (`LPB_MUTATION_SCOPE_UNSUPPORTED_TOOL`), and read mode exposes
-  no shell/execution tool at all. A transactional writer with an
-  unpredictable same-directory candidate path cannot be safely expressed
-  under that model today. This is a harness gap, not an Archify failure,
-  and is not resolved by an unscoped shell-approval bypass.
+- **Pi — PASS (prior HOLD resolved).** Pi was previously
+  HOLD (`harness_capability`): its LPB `mutationScope` was exact-file-Set
+  membership only, with no directory-prefix/glob support; when
+  `mutationScope` was active, shell tools were categorically blocked
+  (`LPB_MUTATION_SCOPE_UNSUPPORTED_TOOL`), and read mode exposed no
+  shell/execution tool at all, so a transactional writer with an
+  unpredictable same-directory candidate path could not be safely
+  expressed. That hold was resolved by a generic LPB runtime-profile plus
+  a safe managed Bash/transaction capability, together with the exact-file
+  missing-parent transaction verifier fix — no Pi-specific or
+  Archify-specific bypass, and no unscoped shell-approval bypass. Pi then
+  ran the exact single wrapper command
+  `node scripts/archify-safe.mjs deliver --cwd . --runtime /lpb-runtime/archify/bin/archify.mjs --type architecture --spec /lpb-runtime/archify/examples/web-app.architecture.json --name pi.html`.
+  The LPB transaction terminated
+  `{ ok: true, status: "promoted", appliedPaths: [".artifacts", ".artifacts/archify", ".artifacts/archify/pi.html"] }`,
+  gitSafety's final pass showed `newDirtyPaths` of only
+  `.artifacts/archify/pi.html` with `unexpectedPaths` empty, and the
+  receipt (wrapper/profile/receipt `1.0.0`, Archify pin `v2.16.0`,
+  identity verified, detected `2.16.0`, child exit `0`,
+  `updateCheckDisabled` true) records final `.artifacts/archify/pi.html`,
+  spec sha256
+  `483350f5297df682aba4e4a0fa491307ce3d3abd725ae4df07fab177490752cf`
+  (3793 bytes), artifact sha256
+  `d2ace03a19456e1ba1e24ed5ec2ef8de495190cbf1f59d54ab9d138d460a5ab8`
+  (715210 bytes), `validation.basicArtifact=passed`. Claims stay at their
+  honest defaults (`deterministicSchema: not_separately_verified`;
+  `runtimeBrowser`/`perceptual`/`human: not_performed`). Independent
+  read-only verification confirmed the same hash/bytes, a regular
+  non-symlink file, and only the untracked file
+  `.artifacts/archify/pi.html`.
 - **Codex — PASS.** Real `deliver` call against the same upstream example
   spec, target `/tmp/archify-ar2-codex`, promoted to
   `.artifacts/archify/codex.html`. Receipt versions are `1.0.0`; the
@@ -184,10 +207,13 @@ wrapper. Full detail is in `ar2-smoke-evidence.v0.json`; summary:
   matched the receipt, the target tree contained only the final artifact,
   and the repo was clean before these evidence edits.
 
-**Overall AR2 status: `closed_with_holds`.** Two real safe lanes (Claude
-and Codex) are established, but all-three portability is **not**
-established and must not be claimed until Pi produces real safe-deliver
-evidence of its own.
+**Overall AR2 status: PASS.** All three lanes (Claude, Codex, Pi) now
+have independently verifiable real safe-deliver artifacts through the one
+shared wrapper, so three-worker portability of the wrapper and the
+`v2.16.0` runtime pin is established. The historical `closed_with_holds`
+outcome — Pi held on `harness_capability` — stands as resolved history.
+Runtime/browser, perceptual, and human claims remain `not_performed` and
+are not upgraded by this result.
 
 ## AR3 — artifact production contract v0 (PASS)
 
@@ -197,6 +223,8 @@ gate → receipt → claim semantics → portability semantics → privacy →
 version/update policy → failure semantics) that the AR1 wrapper already
 implements, and pins the exact required receipt field names. See `AR3.md`
 for the compact state-machine explanation, the AR2 outcome restated in
-context, and the next capability gap (a possible future LPB directory-
-scoped mutation or general safe transactional-command capability), which
-is explicitly **not** prescribed here and is **not** an AR3 blocker.
+context, and the now-resolved capability history (the Pi hold was closed
+at the LPB capability-model level by a generic runtime-profile plus a
+safe managed Bash/transaction capability and the exact-file missing-parent
+transaction verifier fix — never an Archify-specific or Pi-specific
+bypass, and never an AR3 blocker).

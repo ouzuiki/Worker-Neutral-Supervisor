@@ -26,6 +26,10 @@ that path is never a hard runtime dependency of any bridge.
   registry-admission, and completion-gate policy engine, plus its tests.
 - `worker-neutral/archify/` — the worker-neutral artifact-production
   ("archify") contract and admission profile.
+- `worker-neutral/evidence-to-state/` — the minimal worker-neutral information-trust
+  contract for evidence, derived judgment, candidate state, promotion, authority,
+  correction/supersession, and provenance. v0 is semantic-contract-only and adds
+  no runtime, datastore, or Bridge dependency.
 - `scripts/archify-safe.mjs` + `test/archify-safe.test.mjs` — the standalone,
   worker-neutral archify-safe wrapper and its deterministic test suite.
 - `reference-crosswalk/` — cross-worker reference audits and closeout records.

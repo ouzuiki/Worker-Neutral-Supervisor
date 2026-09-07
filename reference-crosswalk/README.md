@@ -1,7 +1,7 @@
 # Tri-Bridge External Reference Crosswalk
 
-**Status:** REF-P0 CLOSED; REF-P1 CLOSED; Agent Skills Native Adoption CLOSED; Supervisor Operational Wiring CLOSED  
-**Audit date:** 2026-09-04  
+**Status:** REF-P0 CLOSED; REF-P1 CLOSED; Agent Skills Native Adoption CLOSED; Supervisor Operational Wiring CLOSED; WeChat Intelligence Hub Pattern Mining CLOSED  
+**Audit date:** 2026-09-07  
 **Original P0-P3 validation baseline:** `550796c03054369b5ac96ba7cad8b3851a2ca2a5` (`P3 CLOSED`)  
 **Purpose:** validate and harden the existing P0-P3 architecture against mature agent/runtime references without importing framework complexity by default.
 
@@ -32,6 +32,23 @@ REF-P1 Final Closeout
 ```
 
 Canonical closeout: `REF-P1-CLOSEOUT.md`.
+
+## WeChat Intelligence Hub pattern mining
+
+`WECHAT-INTELLIGENCE-HUB-PATTERN-MINING-CLOSEOUT.md` records the W0-W5 read-only reference audit against `Rion-Wu-tech/wechat-intelligence-hub`.
+
+The audit did not adopt WeChat-specific reader/access code or Codex-specific Skill wiring. Its retained result is the worker-neutral information-trust axis now frozen in `worker-neutral/evidence-to-state/evidence-to-state-contract.v0.json` and integrated into `SYSTEM-ARCHITECTURE-BASELINE-V1.md`.
+
+Key retained invariant:
+
+```text
+Evidence
+!= Derived Judgment
+!= Candidate State
+!= Authoritative State
+```
+
+The resulting contract is semantic-only and preserves the ordinary-task fast path; no new runtime, datastore, Bridge round trip, or mandatory raw-evidence persistence was added.
 
 ## Post-REF-P1 native adoption
 
@@ -157,6 +174,8 @@ Do not introduce a Registry service, orchestration runtime, universal context lo
 ## Baseline discipline
 
 The original P0-P3 system definition was frozen at the baseline above. REF repairs and policies are recorded as post-baseline validation/hardening and cannot be used to rewrite what an earlier audit originally found.
+
+`SYSTEM-ARCHITECTURE-BASELINE-V1.md` is the current canonical system-level architecture baseline. It composes the frozen Tri-Bridge boundary, Supervisor policy ownership, artifact-production reliability, and Evidence-to-State information reliability without erasing earlier audit history.
 
 ## Repair rule
 

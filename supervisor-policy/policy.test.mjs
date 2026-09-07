@@ -423,7 +423,21 @@ test("capability manifest preserves native asymmetry and CR1 default roles", () 
   assert.equal(manifest.workers.codex.capabilities.quota_probe, true);
   assert.equal(manifest.workers.pi.capabilities.bounded_mutation_scope, true);
   assert.equal(manifest.workers.pi.capabilities.extension_capability, true);
+  assert.equal(manifest.schema_version, 3);
+  assert.equal(manifest.workers.claude.capabilities.web_research, true);
+  assert.equal(manifest.workers.codex.capabilities.web_research, true);
+  assert.equal(manifest.workers.pi.capabilities.web_research, true);
   assert.equal(manifest.workers.codex.default_role_v0, "engineering_default");
   assert.equal(manifest.workers.claude.default_role_v0, "expert_review_scarce");
   assert.equal(manifest.workers.pi.default_role_v0, "specialized_extension");
+});
+
+test("web_research is a routable hard capability for all three conforming workers", () => {
+  const decision = selectWorker({
+    task: { required_capabilities: ["web_research"] },
+  });
+  assert.equal(decision.action, "select");
+  assert.equal(decision.worker, "codex");
+  assert.deepEqual(decision.fallback_chain, ["claude", "pi"]);
+  assert.deepEqual(decision.rejected, []);
 });

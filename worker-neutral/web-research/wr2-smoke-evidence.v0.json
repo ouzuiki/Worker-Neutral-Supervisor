@@ -1,0 +1,70 @@
+{
+  "documentId": "web-research-wr2-smoke-evidence",
+  "documentVersion": "0.1.0",
+  "stage": "WR2-WR3",
+  "status": "pass",
+  "observedDate": "2026-09-07",
+  "description": "Observed live tri-worker Web Research conformance evidence. Encodes only the exact representative read-only operations and implementation compatibility results that were verified.",
+  "lanes": {
+    "pi": {
+      "status": "pass",
+      "runtime": "live fresh-MCP",
+      "startTool": "pi_start",
+      "schema": {
+        "webResearchPresent": true,
+        "bounded": true
+      },
+      "startAcceptedPerRunEnabledConfig": true,
+      "events": {
+        "webReadCount": 1,
+        "url": "https://example.com",
+        "httpStatus": 200
+      },
+      "evidenceTrustLabel": "UNTRUSTED_EXTERNAL_EVIDENCE",
+      "repoUnchanged": true,
+      "brokerCleanup": true
+    },
+    "codex": {
+      "status": "pass",
+      "runtime": "live native-web",
+      "events": {
+        "nativeWebSearchCount": 1,
+        "query": "site:openai.com Codex web search",
+        "officialOpenAIResultReturned": true
+      },
+      "filesModified": false
+    },
+    "claude": {
+      "status": "pass",
+      "runtime": "live native-web",
+      "events": {
+        "nativeWebFetchCount": 1,
+        "url": "https://example.com",
+        "httpStatus": 200,
+        "contentMarker": "Example Domain"
+      },
+      "bashOrNetworkSubstituteUsed": false,
+      "filesModified": false
+    }
+  },
+  "piImplementationCompatibility": {
+    "repository": "LPB",
+    "commit": "97685bb",
+    "fix": "Node v24 custom DNS lookup all:true contract fixed",
+    "focusedTests": {
+      "webResearch": {
+        "passed": 22,
+        "total": 22
+      },
+      "wiring": {
+        "passed": 39,
+        "total": 39
+      }
+    }
+  },
+  "overall": {
+    "status": "pass",
+    "triWorkerConformanceEstablished": true,
+    "scope": "The exact representative read-only operations recorded above; no broader or identical-per-worker native surface is asserted."
+  }
+}

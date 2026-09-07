@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "owner": "supervisor",
   "contract": "Tri-Bridge Contract v1",
   "routing_policy": "Worker Cost/Capability Routing Policy CR1 v0",
@@ -22,11 +22,13 @@
         "post_run_cost": true,
         "post_run_usage": true,
         "native_persistent_thread_inventory": false,
-        "extension_capability": false
+        "extension_capability": false,
+        "web_research": true
       },
       "evidence": [
         "Local-Claude-Bridge/src/tools.ts",
-        "Local-Claude-Bridge/src/runtime.ts"
+        "Local-Claude-Bridge/src/runtime.ts",
+        "worker-neutral/web-research/wr2-smoke-evidence.v0.json"
       ]
     },
     "codex": {
@@ -46,10 +48,12 @@
         "post_run_cost": false,
         "post_run_usage": false,
         "native_persistent_thread_inventory": true,
-        "extension_capability": false
+        "extension_capability": false,
+        "web_research": true
       },
       "evidence": [
-        "Local-Codex-Bridge/src/tools.ts"
+        "Local-Codex-Bridge/src/tools.ts",
+        "worker-neutral/web-research/wr2-smoke-evidence.v0.json"
       ]
     },
     "pi": {
@@ -69,11 +73,13 @@
         "post_run_cost": true,
         "post_run_usage": true,
         "native_persistent_thread_inventory": false,
-        "extension_capability": true
+        "extension_capability": true,
+        "web_research": true
       },
       "evidence": [
         "Local-Pi-Bridge/src/mcp-adapter.js",
-        "Local-Pi-Bridge/src/supervisor.js"
+        "Local-Pi-Bridge/src/supervisor.js",
+        "worker-neutral/web-research/wr2-smoke-evidence.v0.json"
       ]
     }
   }

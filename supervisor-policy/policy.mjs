@@ -44,6 +44,7 @@ export const CAPABILITY_KEYS = Object.freeze([
   "post_run_usage",
   "native_persistent_thread_inventory",
   "extension_capability",
+  "web_research",
 ]);
 
 // Known/named Codex quota windows. Any other window id observed at runtime is

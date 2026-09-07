@@ -31,7 +31,10 @@ export const WATCHDOG_TERMINAL_REASON = "reasoning_budget_exceeded";
 export const WATCHDOG_SOFT_STEER_MESSAGE =
   "Evidence gathered so far is sufficient. Stop further analysis and produce a " +
   "concise final result for the current step now. Do not call more tools unless " +
-  "a concrete unresolved contradiction genuinely requires it.";
+  "a concrete unresolved contradiction genuinely requires it. If the only " +
+  "remaining blocker is missing external or version-sensitive information, a " +
+  "single bounded read-only web search or page read is acceptable; this is a " +
+  "suggestion, not a requirement, and must stay within that one bounded lookup.";
 
 function mappingError(verdict) {
   return new Error(

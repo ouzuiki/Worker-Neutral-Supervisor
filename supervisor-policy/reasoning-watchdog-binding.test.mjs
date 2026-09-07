@@ -98,6 +98,15 @@ test("soft threshold => send_soft_steer + verb steer + exact exported message", 
   assert.equal(result.control.message, WATCHDOG_SOFT_STEER_MESSAGE);
 });
 
+test("soft steer text permits at most a single bounded read-only web lookup, never forces one", () => {
+  const message = WATCHDOG_SOFT_STEER_MESSAGE.toLowerCase();
+  assert.match(message, /read-only web search or page read/);
+  assert.match(message, /suggestion, not a requirement/);
+  assert.match(message, /single bounded/);
+  // never phrased as a mandatory tool call
+  assert.doesNotMatch(message, /you must (?:call|use|run|perform) .*web/);
+});
+
 test("hard threshold reached before any soft steer => STILL send_soft_steer", () => {
   const result = bind({
     elapsed_since_productive_ms: 200_000,

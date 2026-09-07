@@ -22,6 +22,9 @@ that path is never a hard runtime dependency of any bridge.
 
 ## Contents
 
+- `SYSTEM-ARCHITECTURE-BASELINE-V1.md` — frozen canonical system boundary for
+  Supervisor policy/contracts, information reliability, artifact reliability,
+  thin Bridges, native Workers, authority ownership, and external infrastructure.
 - `supervisor-policy/` — the worker-selection, quota, telemetry, memory-policy,
   registry-admission, and completion-gate policy engine, plus its tests.
 - `worker-neutral/archify/` — the worker-neutral artifact-production

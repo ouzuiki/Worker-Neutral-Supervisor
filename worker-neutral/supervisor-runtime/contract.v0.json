@@ -1,0 +1,29 @@
+{
+  "contract_id": "worker-neutral-supervisor-runtime",
+  "contract_version": "0.1.0",
+  "status": "deferred-decision-record",
+  "current_mode": {
+    "supervision": "ChatGPT/manual-supervisor active",
+    "autonomous_supervisor_host": "deferred"
+  },
+  "phase_status": "Worker Liveness Phase 1 = POLICY READY / MANUAL-SUPERVISOR ACTIVE / AUTONOMOUS HOST DEFERRED",
+  "future_host_boundary": {
+    "responsibility_sequence": "start -> observe -> policy evaluation -> control -> terminal/reconcile",
+    "bridges_provide": "facts and control primitives",
+    "worker_neutral_supervisor_provides": "policy decisions"
+  },
+  "invariants": [
+    "The Supervisor Host is not a fourth worker.",
+    "The Supervisor Host is not a liveness daemon.",
+    "No runtime or deployment is introduced by this record.",
+    "No Bridge changes, liveness wiring, routing implementation, or retry implementation are introduced by this record."
+  ],
+  "reopen_triggers": [
+    "frequent manual observe or steer burden",
+    "need for cross-turn or background supervision",
+    "routine multi-worker concurrency",
+    "frequent need for automatic retry or reroute",
+    "need for real-time quota or latency intervention",
+    "need for send-and-forget automation"
+  ]
+}

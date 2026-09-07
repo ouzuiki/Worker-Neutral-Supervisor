@@ -1,0 +1,113 @@
+{
+  "schema_version": 0,
+  "owner": "supervisor",
+  "name": "Worker Liveness v0",
+  "baseline": {
+    "semantic_progress_contract": "supervisor-policy/reasoning-watchdog.mjs#normalizeSemanticProgress",
+    "watchdog_policy": "supervisor-policy/reasoning-watchdog.mjs#evaluateReasoningWatchdog",
+    "control_binding": "supervisor-policy/reasoning-watchdog-binding.mjs#evaluateWatchdogBinding",
+    "thresholds": {
+      "soft_after_ms": 45000,
+      "soft_after_thinking_tokens": 4000,
+      "hard_after_ms": 90000,
+      "hard_after_thinking_tokens": 7000
+    },
+    "ordering": "soft_steer_before_interrupt",
+    "blocked_behavior": "await_blocked_resolution"
+  },
+  "wl1_state": "supervisor-policy/liveness-state.mjs",
+  "wl2_verdict": "supervisor-policy/liveness-verdict.mjs#evaluateLivenessVerdict",
+  "wl3_recovery_policy": "supervisor-policy/liveness-recovery.mjs#evaluateRecoveryPolicy",
+  "worker_reroute_delegate": "supervisor-policy/policy.mjs#selectWorker",
+  "wl5_deferred_detector_registry": "worker-neutral/liveness/deferred-detectors.v0.json",
+  "wl4_telemetry": {
+    "mapping": "supervisor-policy/liveness-telemetry.mjs#mapLivenessTelemetry",
+    "normalizer": "supervisor-policy/telemetry.mjs#normalizeTelemetryEvent",
+    "stall_reasons": ["reasoning_only_no_progress", "unclassified"],
+    "automatic_stall_reasons": ["reasoning_only_no_progress"],
+    "fields": [
+      "stall_detected",
+      "stall_reason",
+      "stall_pattern",
+      "recovery_action",
+      "recovery_count",
+      "post_recovery_progress"
+    ],
+    "observational_only": true,
+    "routing_or_action_feedback": false
+  },
+  "wl6_unclassified_capture": {
+    "helper": "supervisor-policy/liveness-telemetry.mjs#captureUnclassifiedStall",
+    "explicit_only": true,
+    "automatic_inference": false,
+    "observational_only": true,
+    "intervention": false,
+    "routing_feedback": false,
+    "pattern_key": "u1:<worker>:<task_class>:<liveness_state>:<semantic_state>:<recovery_action>",
+    "pattern_components": "closed_enums_or_fixed_unknown_only",
+    "max_pattern_length": 160,
+    "deferred_detector_registry": "worker-neutral/liveness/deferred-detectors.v0.json"
+  },
+  "wl7_phase2_review_trigger": {
+    "helper": "supervisor-policy/liveness-review-trigger.mjs#evaluateLivenessReviewTrigger",
+    "advisory_code": "LIVENESS_PHASE2_REVIEW_RECOMMENDED",
+    "thresholds": {
+      "total_same_pattern": 3,
+      "recent_same_pattern": 2,
+      "recent_valid_record_window": 10,
+      "max_history_records": 100,
+      "max_config_value": 101,
+      "recent_recurrence_threshold_bounded_by": "recent_window_size"
+    },
+    "reason_precedence": [
+      "operator_repeat_flag",
+      "same_pattern_recurrence",
+      "recent_window_recurrence"
+    ],
+    "counting_convention": "history_records_are_prior_only_and_current_pattern_is_counted_once",
+    "advisory_only": true,
+    "detector_activation": false,
+    "routing_or_recovery_effect": false,
+    "automatic_development": false,
+    "automatic_deployment": false
+  },
+  "wl8_tri_worker_deterministic_gate": {
+    "helper": "supervisor-policy/liveness-tri-gate.mjs#evaluateTriWorkerLivenessGate",
+    "gate_id": "WL8_tri_worker_deterministic",
+    "workers": ["codex", "claude", "pi"],
+    "purpose": "prove equivalent liveness/recovery judgments for equivalent common observations",
+    "live_smoke": false,
+    "invokes_bridge_runtime_or_network_or_shell": false,
+    "reuses": [
+      "supervisor-policy/liveness-verdict.mjs#evaluateLivenessVerdict",
+      "supervisor-policy/liveness-recovery.mjs#evaluateRecoveryPolicy",
+      "supervisor-policy/policy.mjs#selectWorker"
+    ],
+    "worker_identity_effect": "reroute_candidate_exclusion_only",
+    "required_common_inputs_fail_closed": true,
+    "new_thresholds": false,
+    "detector_activation": false,
+    "output_fields": [
+      "gate",
+      "workers",
+      "equivalent",
+      "common_judgment_equivalent",
+      "liveness",
+      "progress_epoch",
+      "recovery_attempts_spent",
+      "recovery_action",
+      "recovery_reason",
+      "reroute",
+      "reroute_failed_worker_excluded"
+    ],
+    "output_bounded_enums_and_integers_only": true,
+    "output_excludes_timestamps_randomness_raw_payloads": true
+  },
+  "liveness_states": [
+    "healthy",
+    "blocked",
+    "stall_suspected",
+    "recovering",
+    "stall_confirmed"
+  ]
+}

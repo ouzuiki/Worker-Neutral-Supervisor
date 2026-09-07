@@ -102,7 +102,7 @@ function normalizeConfig(config) {
   return Object.freeze(normalized);
 }
 
-function normalizeSemanticProgress(semanticProgress) {
+export function normalizeSemanticProgress(semanticProgress) {
   const source = requireObject(semanticProgress, "semantic_progress");
   const semanticState = source.semantic_state;
   if (!VALID_STATES.has(semanticState)) {

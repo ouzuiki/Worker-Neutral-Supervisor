@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "phase": "WL9",
+  "purpose": "bounded real liveness smoke",
+  "wl8_deterministic_tri_worker_gate": "pass",
+  "workers": {
+    "claude": { "live_smoke": "pass" },
+    "pi": {
+      "live_smoke": "pass",
+      "result": "WL9_OK",
+      "tool_calls": 0,
+      "status": "completed",
+      "semantic_state": "productive",
+      "reasoning_active": false,
+      "reasoning_telemetry": "supported",
+      "last_completed_reasoning_tokens": 57,
+      "provider": "deepseek",
+      "model": "deepseek-v4-pro",
+      "cost_usd": 0.000773981,
+      "observed_start": "2026-09-07T04:44:52.917Z",
+      "terminal_at": "2026-09-07T04:44:54.339Z",
+      "raw_reasoning_redacted": true,
+      "result_ready": true,
+      "result_ok": true,
+      "result_collection_cleared_run_slot": true
+    },
+    "codex": {
+      "live_smoke": "pass",
+      "result": "WL9_OK",
+      "status": "completed",
+      "natural_quota_recovered": true,
+      "free_reset_credit_used": false,
+      "semantic_state": "productive",
+      "reasoning_active": false,
+      "reasoning_telemetry": "supported",
+      "reasoning_output_tokens": 0,
+      "duration_ms": 3759,
+      "observed_start": "2026-09-07T07:12:35.161Z",
+      "terminal_at": "2026-09-07T07:12:38.882Z",
+      "rate_limit_snapshot_before_smoke": {
+        "primary_remaining_percent": 95,
+        "secondary_remaining_percent": 29,
+        "available_reset_credits": 2
+      }
+    }
+  },
+  "pi_runtime_repair": {
+    "root_cause": "supervisor slot claimed before pre-start preparation completed, allowing preparation failure to latch a never-started supervisor",
+    "fix": "claim supervisor slot immediately before candidate.start() after preparation completes",
+    "focused_adapter_regression": { "tests": 35, "pass": 35, "fail": 0 },
+    "full_lpb_regression": { "tests": 562, "pass": 561, "fail": 0, "skipped": 1, "test_process_env_unset": "LPB_RUNTIME_PROFILE_JSON" },
+    "service_reloaded_before_passing_smoke": true
+  },
+  "phase1_closeout_status": "closed",
+  "closed_at": "2026-09-07T07:12:38.882Z",
+  "currently_runnable_checks": "pass"
+}

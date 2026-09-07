@@ -9,9 +9,20 @@ import {
   BUDGET_PRESSURE_STATES,
   COST_LATENCY_BANDS,
 } from "./policy.mjs";
+import {
+  RECOVERY_ACTION_LABELS,
+  STALL_REASONS,
+  isUnclassifiedPatternKey,
+} from "./liveness-telemetry.mjs";
 
 export const RESULT_STATES = Object.freeze(["success", "failure", "hold"]);
 export const COST_BANDS = COST_LATENCY_BANDS;
+
+const NON_RECOVERY_ACTIONS = new Set([
+  "none",
+  "continue_observing",
+  "await_blocked_resolution",
+]);
 
 function isFiniteNumber(value) {
   return typeof value === "number" && Number.isFinite(value);
@@ -47,6 +58,16 @@ function normalizeQuotaSnapshot(raw) {
  */
 export function normalizeTelemetryEvent(raw = {}) {
   const value = raw !== null && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const stallDetected = value.stall_detected === true;
+  const candidateStallReason = stallDetected
+    ? normalizeEnum(value.stall_reason, STALL_REASONS, null)
+    : null;
+  const validUnclassifiedPattern =
+    candidateStallReason === "unclassified" && isUnclassifiedPatternKey(value.stall_pattern);
+  const stallReason =
+    candidateStallReason === "unclassified" && !validUnclassifiedPattern
+      ? null
+      : candidateStallReason;
 
   return Object.freeze({
     worker: normalizeEnum(value.worker, WORKERS, "unknown"),
@@ -67,6 +88,15 @@ export function normalizeTelemetryEvent(raw = {}) {
     cost_band: normalizeEnum(value.cost_band, COST_BANDS, "unknown"),
     latency_band: normalizeEnum(value.latency_band, COST_BANDS, "unknown"),
     quota_window_snapshot: normalizeQuotaSnapshot(value.quota_window_snapshot),
+    stall_detected: stallDetected,
+    stall_reason: stallReason,
+    stall_pattern: validUnclassifiedPattern ? value.stall_pattern : null,
+    recovery_action: normalizeEnum(value.recovery_action, RECOVERY_ACTION_LABELS, null),
+    recovery_count:
+      Number.isInteger(value.recovery_count) && value.recovery_count >= 0
+        ? value.recovery_count
+        : 0,
+    post_recovery_progress: !stallDetected && value.post_recovery_progress === true,
   });
 }
 
@@ -112,6 +142,15 @@ export function aggregateTelemetry(events = []) {
       const successCount = group.filter((event) => event.result === "success").length;
       const fallbackCount = group.filter((event) => event.fallback_used).length;
       const escalationCount = group.filter((event) => event.escalation_used).length;
+      const stallCount = group.filter((event) => event.stall_detected).length;
+      const recoveryUsedCount = group.filter(
+        (event) =>
+          event.recovery_count > 0 ||
+          (event.recovery_action !== null && !NON_RECOVERY_ACTIONS.has(event.recovery_action)),
+      ).length;
+      const postRecoveryProgressCount = group.filter(
+        (event) => event.post_recovery_progress,
+      ).length;
 
       report.push({
         worker,
@@ -123,6 +162,10 @@ export function aggregateTelemetry(events = []) {
         fallback_rate: fallbackCount / group.length,
         escalation_count: escalationCount,
         escalation_rate: escalationCount / group.length,
+        stall_count: stallCount,
+        recovery_used_count: recoveryUsedCount,
+        post_recovery_progress_count: postRecoveryProgressCount,
+        post_recovery_progress_rate: postRecoveryProgressCount / group.length,
         mean_duration_ms: mean(durations),
         median_duration_ms: median(durations),
         known_cost_usd_sum: knownCosts.length > 0 ? knownCosts.reduce((sum, value) => sum + value, 0) : null,

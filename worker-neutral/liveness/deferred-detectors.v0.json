@@ -1,0 +1,59 @@
+{
+  "schema_version": 0,
+  "name": "Worker Liveness Deferred Detector Registry",
+  "owner": "supervisor",
+  "governance": {
+    "registration_effect": "backlog_metadata_only_not_implementation",
+    "activation_requires": ["bounded_evidence", "supervisor_review", "explicit_execution"],
+    "automatic_development": false,
+    "automatic_deployment": false,
+    "phase_2_review": "advisory_until_explicitly_executed"
+  },
+  "detectors": [
+    {
+      "id": "D1",
+      "detector": "reasoning_only_no_progress",
+      "status": "deferred",
+      "owner": "Worker Liveness Phase 2",
+      "activation_condition": "Approve richer semantic-no-progress analysis beyond the Phase 1 threshold watchdog.",
+      "evidence_required": "Bounded normalized evidence distinguishing semantic non-progress from ordinary reasoning.",
+      "phase_1_state": "The telemetry label reasoning_only_no_progress is active for threshold-based stalls; the richer D1 detector is not implemented."
+    },
+    {
+      "id": "D2",
+      "detector": "repeated_action",
+      "status": "deferred",
+      "owner": "Worker Liveness Phase 2",
+      "activation_condition": "Approve bounded comparison of normalized action observations.",
+      "evidence_required": "Repeated equivalent action fingerprints without productive progress.",
+      "phase_1_state": "No active detector exists in Phase 1."
+    },
+    {
+      "id": "D3",
+      "detector": "repeated_error",
+      "status": "deferred",
+      "owner": "Worker Liveness Phase 2",
+      "activation_condition": "Approve bounded comparison of normalized error observations.",
+      "evidence_required": "Repeated equivalent error categories without productive progress.",
+      "phase_1_state": "No active detector exists in Phase 1."
+    },
+    {
+      "id": "D4",
+      "detector": "ping_pong",
+      "status": "deferred",
+      "owner": "Worker Liveness Phase 2",
+      "activation_condition": "Approve bounded detection of alternating normalized states or actions.",
+      "evidence_required": "A bounded alternating sequence with no productive progress epoch.",
+      "phase_1_state": "No active detector exists in Phase 1."
+    },
+    {
+      "id": "D5",
+      "detector": "runtime_silence",
+      "status": "deferred",
+      "owner": "Worker Liveness Phase 2",
+      "activation_condition": "Approve a worker-neutral silence observation contract and budget.",
+      "evidence_required": "Bounded normalized absence-of-observation evidence from an approved clock source.",
+      "phase_1_state": "No active detector exists in Phase 1."
+    }
+  ]
+}

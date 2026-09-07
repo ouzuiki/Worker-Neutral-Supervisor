@@ -1,0 +1,201 @@
+{
+  "contractId": "worker-neutral-evidence-to-state",
+  "contractVersion": "0.1.0",
+  "stage": "W4",
+  "status": "frozen-v0",
+  "purpose": "Define minimal worker-neutral semantics for turning observed information into durable authoritative state without creating a new runtime, datastore, or bridge responsibility.",
+  "coreInvariant": "evidence != derived_judgment != candidate_state != authoritative_state",
+  "scope": {
+    "appliesTo": [
+      "durable_memory",
+      "architecture_decisions",
+      "business_rules",
+      "verified_root_causes",
+      "cross_worker_handoffs_that_carry_truth_claims",
+      "automatic_updates_to_authoritative_state"
+    ],
+    "ordinaryFastPath": {
+      "enabled": true,
+      "rule": "Ephemeral analysis, ordinary one-shot answers, temporary tool observations, and non-persisted worker reasoning do not require a structured evidence-to-state record unless they are promoted into durable or authoritative state.",
+      "runtimeCostTarget": "zero-or-near-zero",
+      "mustNotRequire": [
+        "new_worker_call",
+        "new_bridge_round_trip",
+        "new_datastore_write",
+        "full_provenance_record_for_ephemeral_output"
+      ]
+    }
+  },
+  "nonGoals": [
+    "new orchestration runtime",
+    "new generic datastore",
+    "bridge-owned evidence engine",
+    "mandatory persistence of raw evidence",
+    "numeric confidence scoring",
+    "replacement of native worker or repository truth sources",
+    "automatic promotion of worker self-report into durable truth"
+  ],
+  "ownership": {
+    "supervisor": [
+      "promotion_decision",
+      "authority_resolution",
+      "correction_or_supersession_decision",
+      "acceptance_of_durable_truth"
+    ],
+    "bridge": [
+      "faithful bounded projection of worker-native source and state metadata only"
+    ],
+    "nativeWorker": [
+      "execution",
+      "native_session_and_history",
+      "native_runtime_state"
+    ],
+    "externalInfrastructure": [
+      "optional durable storage",
+      "memory service",
+      "durable observability"
+    ]
+  },
+  "activation": {
+    "alwaysOnSemanticRules": [
+      "source_identity",
+      "coverage",
+      "typed_uncertainty",
+      "authority_ownership"
+    ],
+    "promotionTimeRules": [
+      "freshness",
+      "minimum_sufficient_evidence",
+      "evidence_reference",
+      "derived_judgment",
+      "candidate_state",
+      "promotion_gate",
+      "correction_or_supersession",
+      "provenance_navigation"
+    ],
+    "note": "Always-on semantic rules constrain claims but do not require a new persisted record for ordinary fast-path tasks. Promotion-time rules become mandatory only when a claim is being made durable or authoritative, or when current truth materially depends on freshness or coverage."
+  },
+  "primitives": [
+    {
+      "id": "source_identity",
+      "name": "Source Identity",
+      "requirement": "A promoted claim must identify the actual source class and enough stable locator or execution identity to distinguish where the evidence came from. Do not invent source identities.",
+      "reuse": ["tri-bridge event source metadata", "artifact runtime identity"]
+    },
+    {
+      "id": "freshness",
+      "name": "Freshness",
+      "requirement": "Time-sensitive or promoted claims must state or derive whether supporting evidence is fresh enough for the claim. Verified-but-stale evidence must not be presented as current truth.",
+      "states": ["fresh", "stale", "unknown", "not_time_sensitive"]
+    },
+    {
+      "id": "coverage",
+      "name": "Coverage",
+      "requirement": "Absence of observed evidence must not be upgraded into evidence of absence when source coverage is partial, stale, failed, or unknown.",
+      "states": ["complete", "partial", "unknown", "not_applicable"]
+    },
+    {
+      "id": "minimum_sufficient_evidence",
+      "name": "Minimum Sufficient Evidence",
+      "requirement": "Retrieve and retain only the evidence scope needed to support or falsify the claim; broaden source, entity, or time scope only when the narrower scope is insufficient.",
+      "derivedFrom": "existing minimum_sufficient_context principle"
+    },
+    {
+      "id": "evidence_reference",
+      "name": "Evidence Reference",
+      "requirement": "Promoted state should reference supporting evidence by stable locator, identifier, hash, or equivalent provenance token when practical. Raw evidence contents need not be persisted by default.",
+      "privacyRule": "prefer references, hashes, and bounded metadata over raw private contents"
+    },
+    {
+      "id": "derived_judgment",
+      "name": "Derived Judgment",
+      "requirement": "Worker or model interpretation is a derived judgment, not authoritative truth. A judgment must remain distinguishable from the evidence it interprets."
+    },
+    {
+      "id": "typed_uncertainty",
+      "name": "Typed Uncertainty",
+      "requirement": "Represent uncertainty with explicit semantic states instead of invented numeric precision. Do not infer an unverified dimension from a verified one.",
+      "baselineStates": ["confirmed", "probable", "uncertain", "unknown", "contradicted", "not_evaluated"]
+    },
+    {
+      "id": "candidate_state",
+      "name": "Candidate State",
+      "requirement": "Machine-discovered or worker-produced durable-truth proposals enter as candidates unless an existing contract explicitly establishes stronger authority. Candidate state must not silently masquerade as authoritative state.",
+      "reuse": ["memory candidate_episode_only semantics"]
+    },
+    {
+      "id": "promotion_gate",
+      "name": "Promotion Gate",
+      "requirement": "Promotion into authoritative or durable state requires the domain's existing verification and acceptance gate. This contract must reuse existing Supervisor, memory, artifact, or domain gates instead of creating a parallel promotion engine.",
+      "mustNot": ["auto-promote worker self-report", "duplicate existing completion or artifact gates"]
+    },
+    {
+      "id": "authority_ownership",
+      "name": "Authority Ownership",
+      "requirement": "Every authoritative state class must have one declared owner or source of truth. Derived views, reports, event history, advisory memory, and worker self-report must not override that owner by inference.",
+      "reuse": ["tri-bridge ownership contract", "context authority ordering"]
+    },
+    {
+      "id": "correction_or_supersession",
+      "name": "Correction / Supersession",
+      "requirement": "When a durable claim becomes wrong, obsolete, or replaced, correction must explicitly invalidate or supersede the prior authoritative claim. Silent coexistence of contradictory durable truths is not acceptable.",
+      "minimumRelation": ["supersedes", "invalidates", "reason", "corrected_at"]
+    },
+    {
+      "id": "provenance_navigation",
+      "name": "Provenance Navigation",
+      "requirement": "For promoted claims, the system should be able to navigate from authoritative state back to the evidence references and promotion decision that established or last corrected it, subject to privacy and retention boundaries."
+    }
+  ],
+  "promotionRecordMinimum": {
+    "requiredWhen": "a claim crosses from candidate or derived judgment into durable or authoritative state",
+    "fields": [
+      "claim_or_state_key",
+      "authority_owner",
+      "source_identity",
+      "freshness",
+      "coverage",
+      "evidence_references",
+      "uncertainty",
+      "verification_status",
+      "acceptance_or_promotion_actor",
+      "promoted_at"
+    ],
+    "optional": [
+      "supersedes",
+      "notes",
+      "retention_policy"
+    ]
+  },
+  "correctionSemantics": {
+    "rules": [
+      "a newer claim does not silently delete history",
+      "a superseded or invalidated claim must no longer be returned as current authoritative truth",
+      "correction records should preserve why authority changed and which evidence justified the change",
+      "advisory memory may suggest a correction but cannot authorize durable truth by itself"
+    ]
+  },
+  "compatibility": {
+    "mustReuse": [
+      "Supervisor acceptance and authority semantics",
+      "memory-policy verified-and-accepted promotion rules",
+      "minimum_sufficient_context principle",
+      "Archify candidate-to-promotion and claim-separation semantics",
+      "Tri-Bridge native/bridge/supervisor ownership boundary"
+    ],
+    "mustNotChange": [
+      "Tri-Bridge Contract v1",
+      "bridge thinness",
+      "native worker session ownership",
+      "existing artifact promotion semantics"
+    ]
+  },
+  "implementationPolicy": {
+    "v0": "semantic-contract-only",
+    "newRuntimeRequired": false,
+    "newDatastoreRequired": false,
+    "bridgeChangesRequired": false,
+    "mandatoryRawEvidencePersistence": false,
+    "futureEnforcementRule": "Add deterministic enforcement only at proven high-value promotion boundaries, one boundary at a time, after measuring benefit and execution cost."
+  }
+}

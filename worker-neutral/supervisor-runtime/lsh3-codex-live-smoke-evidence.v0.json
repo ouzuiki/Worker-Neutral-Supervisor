@@ -1,0 +1,38 @@
+{
+  "record_type": "recorded-live-smoke-evidence",
+  "gate": "LSH-3",
+  "result": "pass",
+  "transport_process_reused": true,
+  "workspace_disposable": true,
+  "mutation_effect": "none",
+  "tools_present": true,
+  "source": {
+    "thread_id": "01a08156-74ef-7960-be0c-28e1ac786aa8",
+    "turn_id": "01a08156-75a3-7d40-8366-e59b969a90e8",
+    "observed_before_interrupt": true,
+    "terminal_status": "interrupted"
+  },
+  "replacement": {
+    "thread_id": "01a08156-79cf-7041-9ff4-33e71c2125e2",
+    "differs_from_source": true,
+    "observable_same_port": true
+  },
+  "supervisor": {
+    "task_id_before": "lsh3-live-stable-task",
+    "task_id_after": "lsh3-live-stable-task",
+    "completed_gates": ["LSH-1", "LSH-2"],
+    "checkpoint_phase": "observing",
+    "retry_count": 1,
+    "claims": 1,
+    "receipts": [
+      { "event": "spawn_observed", "status": "accepted_pending_checkpoint" },
+      { "event": "action_acknowledged", "status": "accepted" }
+    ]
+  },
+  "continuation": {
+    "name": "codex_turn",
+    "has_old_thread_id": false,
+    "continuation_marker": true
+  },
+  "fixture_unchanged": true
+}

@@ -1,0 +1,25 @@
+{
+  "record_type": "recorded-live-smoke-evidence",
+  "gate": "LSH-5",
+  "result": "pass",
+  "real_native_session": { "worker_id": "codex", "native_session_id": "01a08169-fbbc-7001-a881-7aac89093915", "native_turn_id": "01a08169-fc5a-74f1-ab29-906dbe7540a7", "parent_bridge_kept_alive": true },
+  "crash_owner": { "exit_code": 91, "expected_simulated_crash_code": 91, "stale_lock_pid": 1382815, "pid_demonstrably_absent": true, "stale_lock_reclaimed": true },
+  "before_reconcile": { "phase": "awaiting_ack", "accepted_uncheckpointed_session": "01a08169-fbbc-7001-a881-7aac89093915" },
+  "positive_reconcile": {
+    "outcome": "reconciled",
+    "exact_turn_identity_observed": true,
+    "spawn_calls_after_restart": 0,
+    "phase": "observing",
+    "same_task_id": true,
+    "completed_gates": ["LSH-1", "LSH-2", "LSH-3", "LSH-4"],
+    "same_native_session_id": true,
+    "claims": 1,
+    "receipts": [
+      { "event": "spawn_observed", "status": "accepted_pending_checkpoint" },
+      { "event": "action_acknowledged", "status": "accepted" }
+    ]
+  },
+  "negative_bridge_loss": { "observed_runtime_available": false, "native_status": "not_reconstructable", "outcome": "human_required", "phase": "human_required", "reason_code": "spawn_reconciliation_unresolved", "spawn_calls": 0, "bridge_process_restartability_claimed": false },
+  "fixture_unchanged": true,
+  "mutation_effect": "none"
+}

@@ -1,0 +1,46 @@
+{
+  "record_type": "recorded-live-smoke-evidence",
+  "gate": "LSH-6",
+  "lane": "pi-source",
+  "result": "pass",
+  "availability": {
+    "codex": { "initialized": true, "available": true, "required_tools": ["codex_turn", "codex_observe", "codex_interrupt"], "missing_tools": [] },
+    "claude": { "initialized": true, "available": true, "required_tools": ["claude_start", "claude_observe", "claude_result", "claude_interrupt"], "missing_tools": [] },
+    "pi": { "initialized": true, "available": true, "required_tools": ["pi_start", "pi_observe", "pi_result", "pi_interrupt"], "missing_tools": [] }
+  },
+  "source": {
+    "worker_id": "pi",
+    "native_session_id": "01a0828f-2917-7ed4-8d79-1b710e63b7d9",
+    "native_identity_source": "pi_result.stats.sessionId",
+    "start_accepted": true,
+    "observation_address": "current retained Pi run on same bridge",
+    "interrupt_acknowledgement": "accepted",
+    "interrupted": true,
+    "terminal_result": { "ready": true, "ok": false, "status": "interrupted", "terminal": true, "session_id": "01a0828f-2917-7ed4-8d79-1b710e63b7d9" }
+  },
+  "selection": { "delegated_to_selectWorker": true, "target_worker_id": "codex", "differs_from_source": true },
+  "target": {
+    "native_session_id": "01a0828f-30ed-72a1-bc47-08409c4846c3",
+    "start_native_session_id": "01a0828f-30ed-72a1-bc47-08409c4846c3",
+    "durable_identity_matches_start": true,
+    "observation_address": "01a0828f-30ed-72a1-bc47-08409c4846c3",
+    "observation_exact_and_available": true,
+    "start_accepted": true
+  },
+  "continuation": { "marker": true, "task_id_present": true, "completed_gates_present": true },
+  "supervisor": {
+    "task_id_stable": true,
+    "completed_gates": ["LSH-1", "LSH-2", "LSH-3", "LSH-4", "LSH-5"],
+    "retry_count": 1,
+    "claims": 1,
+    "receipts": [
+      { "sequence": 3, "event": "spawn_observed", "claim_key": "sha256:ec5bb9382898e8f5c34723acd7527b254781ea5c64528ed09eeeae17203e6227", "worker_id": "codex", "native_session_id": "01a0828f-30ed-72a1-bc47-08409c4846c3", "status": "accepted_pending_checkpoint", "evidence_ref": "codex://01a0828f-30ed-72a1-bc47-08409c4846c3" },
+      { "sequence": 4, "event": "action_acknowledged", "claim_key": "sha256:ec5bb9382898e8f5c34723acd7527b254781ea5c64528ed09eeeae17203e6227", "worker_id": "codex", "native_session_id": "01a0828f-30ed-72a1-bc47-08409c4846c3", "status": "accepted", "evidence_ref": "codex://01a0828f-30ed-72a1-bc47-08409c4846c3" }
+    ]
+  },
+  "fixture_unchanged": true,
+  "fixture_git_tree_unchanged": true,
+  "fixture_git_status_clean": true,
+  "mutation_effect": "none",
+  "bounded_recovery": true
+}

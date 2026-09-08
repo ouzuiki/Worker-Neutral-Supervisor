@@ -1,0 +1,27 @@
+{
+  "record_type": "recorded-live-smoke-evidence",
+  "gate": "LSH-4",
+  "result": "pass",
+  "availability": {
+    "codex": { "initialized": true, "available": true, "required_tools": ["codex_turn", "codex_observe", "codex_interrupt"], "missing_tools": [] },
+    "claude": { "initialized": true, "available": true, "required_tools": ["claude_start", "claude_observe", "claude_result"], "missing_tools": [] },
+    "pi": { "initialized": true, "available": true, "required_tools": ["pi_start", "pi_observe", "pi_result"], "missing_tools": [] }
+  },
+  "source": { "worker_id": "codex", "thread_id": "01a0815d-630e-7030-89c1-ed75d0c730ca", "observed": true, "terminal_status": "interrupted" },
+  "selection": { "delegated_to_selectWorker": true, "target_worker_id": "claude", "differs_from_source": true },
+  "target": { "native_session_id": "a5dbf75f-9389-4e79-aabd-760ef1d84503", "start_accepted": true, "observable_same_port": true },
+  "continuation": { "marker": true, "task_id_present": true, "completed_gates_present": true },
+  "supervisor": {
+    "task_id_stable": true,
+    "completed_gates": ["LSH-1", "LSH-2", "LSH-3"],
+    "phase": "observing",
+    "retry_count": 1,
+    "claims": 1,
+    "receipts": [
+      { "event": "spawn_observed", "status": "accepted_pending_checkpoint" },
+      { "event": "action_acknowledged", "status": "accepted" }
+    ]
+  },
+  "fixture_unchanged": true,
+  "mutation_effect": "none"
+}

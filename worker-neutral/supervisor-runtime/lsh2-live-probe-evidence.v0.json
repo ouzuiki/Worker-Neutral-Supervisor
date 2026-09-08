@@ -1,0 +1,57 @@
+{
+  "evidence_version": 1,
+  "gate": "LSH-2",
+  "probe_kind": "read-only MCP initialize/tools-list plus retained-session observation",
+  "worker_session_started": false,
+  "tool_surface_probes": [
+    {
+      "exit_code": 0,
+      "worker_id": "codex",
+      "launcher": "/home/ouzuiki/.local/bin/local-codex-bridge-run",
+      "initialized": true,
+      "available": true,
+      "required_tools": ["codex_turn", "codex_observe"],
+      "missing_tools": []
+    },
+    {
+      "exit_code": 0,
+      "worker_id": "claude",
+      "launcher": "/home/ouzuiki/.local/bin/local-claude-bridge-run",
+      "initialized": true,
+      "available": true,
+      "required_tools": ["claude_start", "claude_observe", "claude_result"],
+      "missing_tools": []
+    },
+    {
+      "exit_code": 0,
+      "worker_id": "pi",
+      "launcher": "/home/ouzuiki/.local/bin/local-pi-bridge-run",
+      "initialized": true,
+      "available": true,
+      "required_tools": ["pi_start", "pi_observe", "pi_result"],
+      "missing_tools": []
+    }
+  ],
+  "retained_session_fact": {
+    "exit_code": 0,
+    "fact_version": 1,
+    "worker_id": "codex",
+    "native_session_id": "01a0813c-b06c-74c1-9831-fb807cda9816",
+    "native_state": "unknown",
+    "native_status": "not_reconstructable",
+    "termination_signal": "unknown",
+    "pending_approval": false,
+    "semantic_progress": {
+      "semantic_state": "blocked",
+      "last_productive_at": null,
+      "last_productive_cursor": null,
+      "thinking_tokens_since_productive": 0
+    },
+    "semantic_progress_available": false,
+    "runtime_available": false,
+    "cursor": 0,
+    "stream_id": null
+  },
+  "classification": "pass_tool_transport_and_normalization; retained native lifecycle is honestly unknown because bridge-local live events are not reconstructable in a fresh launcher process",
+  "result": "pass"
+}

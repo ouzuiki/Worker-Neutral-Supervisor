@@ -1,22 +1,221 @@
 {
   "contract_id": "worker-neutral-supervisor-runtime",
-  "contract_version": "0.1.0",
-  "status": "deferred-decision-record",
+  "contract_version": "0.12.0",
+  "status": "live-host-incremental",
   "current_mode": {
     "supervision": "ChatGPT/manual-supervisor active",
-    "autonomous_supervisor_host": "deferred"
+    "autonomous_supervisor_host": "LSH-6 CLOSED/PASS for on-demand tri-worker source continuity; no daemon deployment claimed"
   },
-  "phase_status": "Worker Liveness Phase 1 = POLICY READY / MANUAL-SUPERVISOR ACTIVE / AUTONOMOUS HOST DEFERRED",
+  "phase_status": "Worker Liveness Phase 1 = POLICY READY / ON-DEMAND LIVE HOST QUALIFIED / NO DAEMON DEPLOYMENT",
   "future_host_boundary": {
     "responsibility_sequence": "start -> observe -> policy evaluation -> control -> terminal/reconcile",
     "bridges_provide": "facts and control primitives",
     "worker_neutral_supervisor_provides": "policy decisions"
   },
+  "durable_task_continuation": {
+    "gate": "ASR-1",
+    "status": "frozen-v1",
+    "implementation": "supervisor-policy/task-continuation.mjs",
+    "checkpoint_version": 1,
+    "owner": "supervisor",
+    "fields": [
+      "checkpoint_version",
+      "revision",
+      "task.{id,project,goal,phase,status}",
+      "gates.{completed,open}",
+      "workspace.{path,git_sha,branch}",
+      "constraints.{items,approval}",
+      "evidence_refs",
+      "receipt_refs",
+      "handoff_refs",
+      "semantic_progress",
+      "last_execution.{worker_id,native_session_id,native_status}",
+      "continuation.{next_action,resume_cursor,retry_count,safe_to_resume}"
+    ],
+    "operations": [
+      "validateTaskCheckpoint",
+      "serializeTaskCheckpoint",
+      "restoreTaskCheckpoint",
+      "updateTaskCheckpoint"
+    ],
+    "checkpoint_rule": "After a meaningful gate, evidence, approval, handoff, workspace, progress, or continuation change, the Supervisor may validate and persist the next revision. A native interruption does not invalidate the last persisted revision.",
+    "reference_rule": "Evidence, receipts, and handoffs are referenced by stable locator and optional digest; their payloads are not duplicated in the checkpoint.",
+    "invariants": [
+      "Task state and checkpoint revision belong to the Supervisor.",
+      "Native worker session and thread state belong to the worker or Bridge and are replaceable.",
+      "Changing last_execution must not change task identity, completed gates, or evidence references.",
+      "Canonical JSON is the only accepted serialized representation.",
+      "No model-generated prose, event log, advisory memory, or worker self-report is authoritative checkpoint state.",
+      "The contract is worker-neutral and has no external orchestrator dependency.",
+      "Persistence transport and automatic respawn, classification, and retry execution are outside ASR-1."
+    ]
+  },
+  "session_termination_classification": {
+    "gate": "ASR-2",
+    "status": "frozen-v1",
+    "implementation": "supervisor-policy/session-termination.mjs#classifySessionTermination",
+    "input": ["ASR-1 checkpoint v1", "bounded termination_evidence.signals"],
+    "signals": ["normal_completion", "interrupted", "session_timeout", "runtime_timeout", "context_exhausted", "transient_provider_error", "model_stall", "tool_runtime_failure", "safety_block", "terminal_task_failure", "unknown"],
+    "output_fields": ["classification", "reason_code", "disposition", "same_worker_retry_eligible", "cross_worker_reroute_eligible", "automatic_resume_eligible"],
+    "precedence": ["terminal task state", "pending or rejected approval", "safety block", "contradictory or absent evidence", "single bounded termination signal"],
+    "invariants": [
+      "Classification is pure, deterministic, idempotent, worker-neutral, and does not mutate the checkpoint.",
+      "Normal session completion on an open task continues to the next phase and is not a retry.",
+      "Human-required and review-required outcomes are never eligible for automatic resume, same-worker retry, or reroute.",
+      "Eligibility fields are classifications only; this gate performs no resume, retry, reroute, session spawn, bridge call, timing, or daemon behavior.",
+      "Unknown, absent, or contradictory non-overridden evidence requires review.",
+      "No model prose or provider-specific failure branch is accepted as termination evidence.",
+      "The classifier has no external orchestrator dependency."
+    ]
+  },
+  "same_worker_respawn": {
+    "gate": "ASR-3",
+    "status": "frozen-v1-policy-qualified-only",
+    "implementation": "supervisor-policy/same-worker-respawn.mjs",
+    "operations": ["planSameWorkerRespawn", "acknowledgeSameWorkerRespawn"],
+    "action": "spawn_same_worker",
+    "policy_input": "max_retry_count",
+    "eligibility": [
+      "task.status is open",
+      "ASR-2 classification is resumable or retry_same_worker_candidate and exposes automatic-resume or same-worker-retry eligibility",
+      "continuation.safe_to_resume is true",
+      "approval is neither pending nor rejected",
+      "continuation.retry_count is less than max_retry_count",
+      "source worker and native session ids are present"
+    ],
+    "plan_fields": [
+      "plan_version", "action", "claim_key", "task_id", "checkpoint_revision",
+      "source_worker_id", "source_native_session_id", "target_native_session_id=null",
+      "next_action", "resume_cursor", "retry_count_before", "retry_count_after",
+      "retry_limit", "workspace", "gates", "constraints", "evidence_refs",
+      "receipt_refs", "handoff_refs", "semantic_progress"
+    ],
+    "acknowledgement": "A host supplies a non-empty native session id different from the source. A matching first acknowledgement advances checkpoint revision and retry count and installs the new running session; an exact duplicate is idempotent and a mismatch is rejected.",
+    "invariants": [
+      "Planning and acknowledgement are pure state operations and perform no transport or spawning.",
+      "The claim key is deterministic and contains no clock, randomness, provider, or model data.",
+      "The source native session is reference-only and is never a target session.",
+      "Task identity, gates, and evidence, receipt, and handoff references survive acknowledgement.",
+      "No new native session id is invented by policy code.",
+      "The implementation has no external orchestrator dependency."
+    ]
+  },
+  "resume_preflight": {
+    "gate": "ASR-4",
+    "status": "frozen-v1-policy-qualified-only",
+    "implementation": "supervisor-policy/resume-preflight.mjs#evaluateResumePreflight",
+    "inputs": ["ASR-1 checkpoint", "ASR-3 or ASR-5 spawn plan", "closed host-observed runtime_facts"],
+    "runtime_facts": {
+      "workspace": ["path", "git_sha", "branch"],
+      "human_block": ["none", "human_required", "safety_block"],
+      "effect.kind": ["none", "read_only", "mutating", "unknown"],
+      "effect.status": ["none", "known_not_applied", "applied", "unknown"],
+      "effect.prior_claim_keys": "bounded string references"
+    },
+    "decisions": ["pass", "stale_replan", "recovery_required", "human_required", "already_completed"],
+    "output_fields": ["decision", "reason_code", "execution_allowed"],
+    "precedence": [
+      "task and checkpoint revision currency",
+      "open and safe checkpoint",
+      "approval and explicit human or safety block",
+      "observed workspace identity",
+      "next gate completion and openness",
+      "completed-gate and required-reference continuity",
+      "duplicate claim",
+      "effect kind and result certainty"
+    ],
+    "invariants": [
+      "Only pass sets execution_allowed true.",
+      "Unknown effects are reconciled before replay and applied mutations are not replayed.",
+      "Read-only replay is allowed only from explicit read_only metadata.",
+      "The deterministic spawn-plan claim key prevents the same host action from executing twice for either ASR-3 or ASR-5.",
+      "Preflight is pure and idempotent and mutates neither checkpoint nor plan.",
+      "Preflight performs no filesystem read, Bridge call, spawn, effect, acknowledgement, timer, or daemon behavior.",
+      "The implementation has no external orchestrator dependency."
+    ]
+  },
+  "cross_worker_recovery": {
+    "gate": "ASR-5",
+    "status": "frozen-v1-policy-qualified-only",
+    "implementation": "supervisor-policy/cross-worker-recovery.mjs",
+    "routing_delegate": "supervisor-policy/policy.mjs#selectWorker",
+    "preflight_delegate": "supervisor-policy/resume-preflight.mjs#evaluateResumePreflight",
+    "operations": ["planCrossWorkerRecovery", "acknowledgeCrossWorkerRecovery"],
+    "action": "spawn_cross_worker",
+    "policy_input": "max_reroute_count",
+    "eligibility": [
+      "task.status is open and continuation.safe_to_resume is true",
+      "ASR-2 classification is retry_or_reroute_candidate with cross_worker_reroute_eligible true",
+      "approval is neither pending nor rejected",
+      "continuation.retry_count is less than max_reroute_count",
+      "source worker and native session ids are present",
+      "existing worker selection returns a supported target different from the failed source"
+    ],
+    "plan_fields": [
+      "plan_version", "action", "claim_key", "task_id", "checkpoint_revision",
+      "source_worker_id", "source_native_session_id", "target_worker_id",
+      "target_native_session_id=null", "next_action", "resume_cursor",
+      "retry_count_before", "retry_count_after", "retry_limit", "workspace",
+      "gates", "constraints", "evidence_refs", "receipt_refs", "handoff_refs",
+      "semantic_progress"
+    ],
+    "acknowledgement": "A host supplies a new native session id for the selected target worker. Exact duplicate acknowledgement is idempotent; stale, mismatched, same-worker, unsupported-target, or reused-source-session transitions are rejected.",
+    "invariants": [
+      "The source worker is injected into existing routing failed_workers so it cannot be immediately selected again.",
+      "Selection reuses existing capability, availability, quota, and task-shape policy.",
+      "The deterministic recovery claim key contains no clock or randomness.",
+      "ASR-4 preflight gates stale state, human or safety blocks, workspace drift, ambiguous effects, applied mutations, and duplicate claims before host execution.",
+      "Planning and acknowledgement preserve durable checkpoint material and perform no transport, spawn, effect, filesystem read, timer, or daemon behavior.",
+      "The implementation has no external orchestrator dependency."
+    ]
+  },
+  "live_supervisor_host": {
+    "gates": ["LSH-1", "LSH-2", "LSH-3", "LSH-4", "LSH-5", "LSH-6"],
+    "status": "LSH-1-through-LSH-6-closed-pass",
+    "implementation": [
+      "worker-neutral/supervisor-runtime/host-state.mjs",
+      "worker-neutral/supervisor-runtime/checkpoint-store.mjs",
+      "worker-neutral/supervisor-runtime/bridge-observer.mjs",
+      "worker-neutral/supervisor-runtime/mcp-stdio-port.mjs",
+      "worker-neutral/supervisor-runtime/lsh2-live-probe-evidence.v0.json",
+      "worker-neutral/supervisor-runtime/continuation-envelope.mjs",
+      "worker-neutral/supervisor-runtime/bridge-transport.mjs",
+      "worker-neutral/supervisor-runtime/recovery-host.mjs",
+      "worker-neutral/supervisor-runtime/lsh3-codex-live-smoke-evidence.v0.json",
+      "worker-neutral/supervisor-runtime/lsh4-cross-worker-live-smoke-evidence.v0.json",
+      "worker-neutral/supervisor-runtime/host-service.mjs",
+      "scripts/supervisor-host-status.mjs",
+      "worker-neutral/supervisor-runtime/lsh5-host-restart-live-smoke-evidence.v0.json",
+      "scripts/lsh6-cross-source-live-smoke.mjs",
+      "worker-neutral/supervisor-runtime/lsh6-pi-source-live-smoke-evidence.v0.json",
+      "worker-neutral/supervisor-runtime/lsh6-claude-source-live-smoke-evidence.v0.json"
+    ],
+    "state_phases": ["observing", "action_pending", "awaiting_ack", "reconciling", "human_required", "terminal"],
+    "persistence": "checksummed envelope, exclusive temporary create, file sync, atomic rename, directory sync",
+    "claiming": "one exclusive host lock per checkpoint path",
+    "invariants": [
+      "Supervisor task identity remains stable across native session lineage changes.",
+      "Every host transition increments one deterministic sequence and an acknowledgement records a receipt.",
+      "Malformed or checksum-mismatched checkpoints fail closed.",
+      "Bridge observations normalize above unchanged Bridge tool surfaces.",
+      "Unknown lifecycle or effect facts fail closed.",
+      "LSH-2 performs no replacement worker spawn.",
+      "LSH-3 executes only a preflight-passed ASR-3 same-worker plan through an existing Bridge tool.",
+      "Unknown spawn acknowledgement enters reconciliation and is never blindly replayed.",
+      "LSH-4 executes only a preflight-passed ASR-5 plan and delegates target choice to selectWorker.",
+      "The source and previously acknowledged lineage workers are excluded and reroute count is bounded.",
+      "Accepted spawn evidence is reconciled after restart without issuing a duplicate spawn.",
+      "LSH-6 proves real Pi-source and Claude-source interruption followed by policy-selected cross-worker continuation into fresh, exactly observed Codex native sessions.",
+      "LSH-6 uses disposable read-only Git fixtures, stable task identity, LSH-1-through-LSH-5 continuation context, durable deterministic claims and receipts, and bounded retry state with no fixture mutation.",
+      "Unresolved reconciliation, approvals, safety blocks, corrupt state, and exhausted budgets require a human.",
+      "Concurrent host claims are excluded and demonstrably stale PID locks are recoverable."
+    ]
+  },
   "invariants": [
     "The Supervisor Host is not a fourth worker.",
     "The Supervisor Host is not a liveness daemon.",
-    "No runtime or deployment is introduced by this record.",
-    "No Bridge changes, liveness wiring, routing implementation, or retry implementation are introduced by this record."
+    "The runtime imports worker-neutral policy only and does not import Bridge implementation code.",
+    "Closed LSH gates qualify the on-demand Host paths recorded here; they do not introduce Bridge changes, a background liveness daemon, or a deployed always-on Supervisor service."
   ],
   "reopen_triggers": [
     "frequent manual observe or steer burden",

@@ -18,6 +18,11 @@
   ],
   "policy_bindings": {
     "memory_recall_assessment": "supervisor-policy/memory-policy.mjs#evaluateRecallPolicy",
+    "durable_task_continuation": "supervisor-policy/task-continuation.mjs; worker-neutral/supervisor-runtime/contract.v0.json#durable_task_continuation",
+    "session_termination_classification": "supervisor-policy/session-termination.mjs#classifySessionTermination; worker-neutral/supervisor-runtime/contract.v0.json#session_termination_classification",
+    "same_worker_respawn_plan": "supervisor-policy/same-worker-respawn.mjs; worker-neutral/supervisor-runtime/contract.v0.json#same_worker_respawn",
+    "resume_preflight": "supervisor-policy/resume-preflight.mjs#evaluateResumePreflight; worker-neutral/supervisor-runtime/contract.v0.json#resume_preflight",
+    "cross_worker_recovery": "supervisor-policy/cross-worker-recovery.mjs; supervisor-policy/policy.mjs#selectWorker; worker-neutral/supervisor-runtime/contract.v0.json#cross_worker_recovery",
     "worker_selection": "supervisor-policy/policy.mjs#selectWorker",
     "execution_supervision": "TRI-BRIDGE-CONTRACT-V1.md#Worker-neutral-Control-Contract-v1; supervisor-policy/reasoning-watchdog-binding.mjs#evaluateWatchdogBinding; supervisor-policy/liveness-state.mjs; supervisor-policy/liveness-verdict.mjs#evaluateLivenessVerdict; supervisor-policy/liveness-recovery.mjs#evaluateRecoveryPolicy (reroute delegates to supervisor-policy/policy.mjs#selectWorker; see worker-neutral/liveness/contract.v0.json); supervisor-policy/web-research-policy.mjs#evaluateWebResearchPolicy (read-only search+read gate; see worker-neutral/web-research/contract.v0.json)",
     "acceptance_verification": "Supervisor responsibility under TRI-BRIDGE-CONTRACT-V1.md",

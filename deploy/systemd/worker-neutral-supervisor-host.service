@@ -1,0 +1,24 @@
+[Unit]
+Description=Worker-Neutral Supervisor Host
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/Worker-Neutral-Supervisor
+Environment=NODE_ENV=production
+Environment=SUPERVISOR_HOST_STATE_DIR=%h/.local/state/worker-neutral-supervisor
+Environment=SUPERVISOR_HOST_INTERVAL_MS=5000
+ExecStart=/usr/bin/node /home/ouzuiki/projects/Worker-Neutral-Supervisor/scripts/supervisor-host-daemon.mjs
+Restart=on-failure
+RestartSec=2s
+TimeoutStopSec=15s
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=%h/.local/state/worker-neutral-supervisor
+
+[Install]
+WantedBy=default.target

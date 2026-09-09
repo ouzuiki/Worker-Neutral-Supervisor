@@ -1,0 +1,13 @@
+# Always-on Supervisor Host service contract (SHD-1)
+
+The Supervisor Host is deterministic infrastructure outside Worker containment. It is not a Worker, model, Bridge, scheduler, or source of judgment. It reuses the ASR/LSH checkpoint, classification, preflight, routing, recovery, handoff, receipt, and minimum-context seams.
+
+- **Lifecycle and owner:** one `ouzuiki` user service starts with `default.target`, runs until clean SIGTERM, and is eligible for user-manager restart on failure. Enablement proves login/user-manager semantics only; reboot survival additionally requires verified user lingering and is not inferred.
+- **Durability:** `%h/.local/state/worker-neutral-supervisor/tasks/*.json` contains existing checksummed Host checkpoints. `health.json` is an atomic operational projection, not authoritative task state. Sessions remain disposable.
+- **Processing:** a versioned `.json.descriptor` sidecar binds one existing recovery or reconciliation operation to an expected checkpoint revision and native-session identity. A mismatch is stale and executes nothing. The daemon delegates to `runSameWorkerRecovery`, `runCrossWorkerRecovery`, or `reconcileAcceptedSpawn`; descriptors contain bounded inputs but no replacement policy.
+- **Exclusion:** one mode-0600 service lock excludes duplicate daemon instances; strict PID parsing and `kill(pid, 0)` distinguish live/ambiguous owners from ESRCH-confirmed dead owners. Only an ESRCH-confirmed stale lock is reclaimed. Existing per-checkpoint locks exclude concurrent task ownership.
+- **Health and logs:** `health.json` exposes bounded aggregate/task status. Stdout/stderr stay in the user journal. Checkpoint corruption or human-required state degrades health without inventing recovery evidence.
+- **Restart policy:** `Restart=on-failure` restarts Host only. Graceful operator stop does not loop. Host restart restores checkpoints before action and reconciles accepted effects before any retry.
+- **Bridge boundary:** Codex, Claude, and Pi Bridge processes and their native runtime remain independently owned. Host service restartability never implies Bridge restartability. No broad execution privilege or Bridge implementation import is introduced.
+- **Bridge access:** launchers are opened lazily. Same-worker execution opens only its selected worker, accepted-spawn reconciliation opens only the recorded worker, and cross-worker execution opens only the target returned by existing `selectWorker` policy.
+- **Fail closed:** approval, safety, unknown lifecycle, ambiguous mutation, applied effect, duplicate claim, corrupt state, retry exhaustion, or unprovable native-session reconstruction blocks automatic action and requires reconciliation or a human. No mutation is blindly replayed.

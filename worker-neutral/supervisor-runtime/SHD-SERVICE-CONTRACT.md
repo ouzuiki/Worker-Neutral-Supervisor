@@ -11,3 +11,7 @@ The Supervisor Host is deterministic infrastructure outside Worker containment. 
 - **Bridge boundary:** Codex, Claude, and Pi Bridge processes and their native runtime remain independently owned. Host service restartability never implies Bridge restartability. No broad execution privilege or Bridge implementation import is introduced.
 - **Bridge access:** launchers are opened lazily. Same-worker execution opens only its selected worker, accepted-spawn reconciliation opens only the recorded worker, and cross-worker execution opens only the target returned by existing `selectWorker` policy.
 - **Fail closed:** approval, safety, unknown lifecycle, ambiguous mutation, applied effect, duplicate claim, corrupt state, retry exhaustion, or unprovable native-session reconstruction blocks automatic action and requires reconciliation or a human. No mutation is blindly replayed.
+
+## SHD-4 real SIGKILL acceptance boundary
+
+[`SHD-4-CONTRACT-v1.md`](./SHD-4-CONTRACT-v1.md) is the authoritative frozen/ready-for-live-gate contract for a future real `SIGKILL` of the always-on Host `MainPID`. It requires an accepted-but-not-yet-acknowledged durable effect, automatic systemd recovery, exact-session reconciliation before retry, zero duplicate spawn, and unchanged read-only inputs. SHD-4 is not yet CLOSED/PASS and its evidence is pending. Existing LSH-5 crash/restart evidence supports only reconciliation and stale-lock mechanics; it is not proof of the SHD-4 gate. Host restartability never implies Bridge restartability.

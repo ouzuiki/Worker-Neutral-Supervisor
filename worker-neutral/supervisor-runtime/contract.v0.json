@@ -1,12 +1,12 @@
 {
   "contract_id": "worker-neutral-supervisor-runtime",
-  "contract_version": "0.12.0",
-  "status": "live-host-incremental",
+  "contract_version": "0.13.0",
+  "status": "always-on-host-deployed-shd4-live-gate-pending",
   "current_mode": {
     "supervision": "ChatGPT/manual-supervisor active",
-    "autonomous_supervisor_host": "LSH-6 CLOSED/PASS for on-demand tri-worker source continuity; no daemon deployment claimed"
+    "autonomous_supervisor_host": "SHD-1 through SHD-3 CLOSED/PASS for the deployed always-on user service; SHD-4/v1 FROZEN / READY_FOR_LIVE_GATE with evidence pending"
   },
-  "phase_status": "Worker Liveness Phase 1 = POLICY READY / ON-DEMAND LIVE HOST QUALIFIED / NO DAEMON DEPLOYMENT",
+  "phase_status": "Worker Liveness Phase 1 = POLICY READY / LIVE HOST QUALIFIED / ALWAYS-ON USER SERVICE DEPLOYED / SHD-4 LIVE GATE PENDING",
   "future_host_boundary": {
     "responsibility_sequence": "start -> observe -> policy evaluation -> control -> terminal/reconcile",
     "bridges_provide": "facts and control primitives",
@@ -211,11 +211,27 @@
       "Concurrent host claims are excluded and demonstrably stale PID locks are recoverable."
     ]
   },
+  "always_on_host_service": {
+    "gates_closed_pass": ["SHD-0", "SHD-1", "SHD-2", "SHD-3"],
+    "service_contract": "worker-neutral/supervisor-runtime/SHD-SERVICE-CONTRACT.md",
+    "unit": "deploy/systemd/worker-neutral-supervisor-host.service",
+    "restart_policy": "Restart=on-failure restarts the Host only",
+    "startup_scope": "login/user-manager semantics; logout and reboot survival are not claimed",
+    "shd4": {
+      "contract_id": "SHD-4/v1",
+      "status": "frozen-v1-ready-for-live-gate",
+      "contract": "worker-neutral/supervisor-runtime/SHD-4-CONTRACT-v1.md",
+      "future_evidence": "worker-neutral/supervisor-runtime/shd4-host-sigkill-live-smoke-evidence.v1.json",
+      "evidence": "pending"
+    }
+  },
   "invariants": [
     "The Supervisor Host is not a fourth worker.",
-    "The Supervisor Host is not a liveness daemon.",
     "The runtime imports worker-neutral policy only and does not import Bridge implementation code.",
-    "Closed LSH gates qualify the on-demand Host paths recorded here; they do not introduce Bridge changes, a background liveness daemon, or a deployed always-on Supervisor service."
+    "The deployed always-on Supervisor Host service does not introduce Bridge changes or Bridge implementation ownership.",
+    "LSH-5 crash/restart tests and live smoke are supporting analog evidence for reconciliation and stale-lock mechanics; they are not proof of the SHD-4 real always-on Host SIGKILL gate.",
+    "Host restartability never implies Bridge restartability.",
+    "SHD-4 evidence is pending; frozen-v1-ready-for-live-gate is not CLOSED/PASS."
   ],
   "reopen_triggers": [
     "frequent manual observe or steer burden",

@@ -211,7 +211,23 @@ native identities and receipt references are retained in
 `lsh6-pi-source-live-smoke-evidence.v0.json` and
 `lsh6-claude-source-live-smoke-evidence.v0.json`.
 
-This qualification closes the LSH sequence without claiming a background
-daemon, an always-on deployment, Bridge-process restartability, or Bridge-local
-implementation changes. The Host remains an explicitly invoked runtime that
-uses the existing Bridge transports and worker-neutral policy.
+This qualification closes the LSH sequence without claiming Bridge-process
+restartability or Bridge-local implementation changes. The later SHD-1 through
+SHD-3 work deploys the existing Host as an always-on `ouzuiki` user service with
+`Restart=on-failure`; enablement establishes login/user-manager startup semantics
+only, not logout or reboot survival.
+
+## SHD-4 real Host SIGKILL continuation
+
+`SHD-4-CONTRACT-v1.md` is the authoritative **FROZEN /
+READY_FOR_LIVE_GATE** acceptance contract for one future real `SIGKILL` of the
+always-on Supervisor Host service `MainPID`. The live evidence is pending, so
+SHD-4 is not CLOSED/PASS. Its primary gate begins only after an accepted native
+spawn/effect is durably recorded in `awaiting_ack`, then requires automatic
+systemd recovery, exact same-session reconciliation before any retry, zero
+post-restart spawn calls, and an unchanged disposable fixture and baseline.
+
+LSH-5 tests and live-smoke evidence remain supporting analog evidence for
+accepted-effect reconciliation and ESRCH-confirmed stale-lock recovery only.
+They do not prove the exact SHD-4 real always-on Host SIGKILL gate. Host
+restartability never implies Bridge restartability.

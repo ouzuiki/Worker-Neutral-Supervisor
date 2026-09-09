@@ -3,7 +3,9 @@ import { link, mkdir, open, readFile, readdir, rename, rm } from "node:fs/promis
 import { basename, dirname, join, resolve } from "node:path";
 import { FileCheckpointStore } from "./checkpoint-store.mjs";
 import { hostStatus, reconcileAcceptedSpawn } from "./host-service.mjs";
+import { transitionHostState } from "./host-state.mjs";
 import { runCrossWorkerRecovery, runSameWorkerRecovery } from "./recovery-host.mjs";
+import { createShd4PreKillBarrier, validateShd4BarrierDescriptor } from "./shd4-prekill-barrier.mjs";
 
 export const HOST_SERVICE_VERSION = 1;
 
@@ -69,21 +71,33 @@ function validateDescriptor(value) {
   if (!["same_worker_recovery", "cross_worker_recovery", "reconcile_accepted_spawn"].includes(value.operation)) throw new TypeError("task descriptor operation is invalid");
   if (!Number.isSafeInteger(value.expected_checkpoint_revision) || value.expected_checkpoint_revision < 0) throw new TypeError("task descriptor expected_checkpoint_revision is invalid");
   if (typeof value.expected_native_session_id !== "string" || value.expected_native_session_id.length === 0) throw new TypeError("task descriptor expected_native_session_id is required");
+  if (Object.hasOwn(value, "shd4_test_barrier")) validateShd4BarrierDescriptor(value.shd4_test_barrier);
   return value;
 }
 
 export async function loadTaskDescriptor(path) { return validateDescriptor(JSON.parse(await readFile(`${path}.descriptor`, "utf8"))); }
 
-export async function processDurableTask(path, { transport, inspect_spawn } = {}) {
+export async function processDurableTask(path, { transport, inspect_spawn, shd4_test_barrier = null } = {}) {
   const descriptor = await loadTaskDescriptor(path); const store = new FileCheckpointStore(path); await store.acquire();
   try {
     let state = await store.load(); if (!state) throw new Error("task checkpoint is missing");
     const checkpoint = state.task_checkpoint;
     if (checkpoint.revision !== descriptor.expected_checkpoint_revision || checkpoint.last_execution.native_session_id !== descriptor.expected_native_session_id) return hostStatus(state);
     const persist_state = value => store.save(value);
-    if (descriptor.operation === "reconcile_accepted_spawn") await reconcileAcceptedSpawn({ host_state: state, inspect_spawn, persist_state });
-    else if (descriptor.operation === "same_worker_recovery") await runSameWorkerRecovery({ host_state: state, termination_evidence: descriptor.termination_evidence, runtime_facts: descriptor.runtime_facts, policy: descriptor.policy, transport, persist_state });
-    else await runCrossWorkerRecovery({ host_state: state, termination_evidence: descriptor.termination_evidence, runtime_facts: descriptor.runtime_facts, policy: descriptor.policy, transport, persist_state, task: descriptor.task, worker_state: descriptor.worker_state, routing_policy: descriptor.routing_policy });
+    if (state.active_action?.spawn_evidence && ["awaiting_ack", "reconciling"].includes(state.phase)) await reconcileAcceptedSpawn({ host_state: state, inspect_spawn, persist_state });
+    else if (state.active_action && !state.active_action.spawn_evidence && ["action_pending", "awaiting_ack"].includes(state.phase)) {
+      state = transitionHostState(state, { type: "reconciliation_required", reason_code: "inflight_action_identity_unprovable", evidence_ref: null });
+      await persist_state(state);
+    }
+    else if (state.phase === "reconciling" || state.phase === "human_required") return hostStatus(state);
+    else if (descriptor.operation === "reconcile_accepted_spawn") await reconcileAcceptedSpawn({ host_state: state, inspect_spawn, persist_state });
+    else {
+      const barrier = createShd4PreKillBarrier({ ...shd4_test_barrier, descriptor, checkpoint_path: path });
+      const recovery_barrier = barrier ? { reserve: barrier.reserve, afterSpawn: values => barrier.afterSpawn({ ...values, reload: () => store.load() }) } : null;
+      const recovery = { host_state: state, termination_evidence: descriptor.termination_evidence, runtime_facts: descriptor.runtime_facts, policy: descriptor.policy, transport, persist_state, recovery_barrier };
+      if (descriptor.operation === "same_worker_recovery") await runSameWorkerRecovery(recovery);
+      else await runCrossWorkerRecovery({ ...recovery, task: descriptor.task, worker_state: descriptor.worker_state, routing_policy: descriptor.routing_policy });
+    }
     return hostStatus(await store.load());
   } finally { await store.release(); }
 }

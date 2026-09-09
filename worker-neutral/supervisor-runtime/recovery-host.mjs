@@ -6,7 +6,7 @@ import { transitionHostState, validateHostState } from "./host-state.mjs";
 
 async function persist(callback, state) { if (callback) await callback(state); return state; }
 
-export async function runSameWorkerRecovery({ host_state, termination_evidence, runtime_facts, policy, transport, persist_state } = {}) {
+export async function runSameWorkerRecovery({ host_state, termination_evidence, runtime_facts, policy, transport, persist_state, recovery_barrier } = {}) {
   let state = validateHostState(host_state); if (state.phase !== "observing") throw new TypeError("host must be observing");
   const termination = classifySessionTermination({ checkpoint: state.task_checkpoint, termination_evidence });
   const plan = planSameWorkerRespawn({ checkpoint: state.task_checkpoint, termination_result: termination, policy });
@@ -19,17 +19,20 @@ export async function runSameWorkerRecovery({ host_state, termination_evidence, 
   }
   state = await persist(persist_state, transitionHostState(state, { type: "action_planned", action: plan }));
   state = await persist(persist_state, transitionHostState(state, { type: "action_started", claim_key: plan.claim_key }));
+  if (recovery_barrier) await recovery_barrier.reserve({ state, plan });
   const spawn = await transport.spawn(plan);
   if (spawn.acknowledgement !== "accepted") {
     const reason = spawn.acknowledgement === "unknown" ? "spawn_acknowledgement_unknown" : "spawn_rejected";
     state = await persist(persist_state, transitionHostState(state, { type: "reconciliation_required", reason_code: reason, evidence_ref: spawn.response_ref }));
     return Object.freeze({ outcome: "reconciliation_required", reason_code: reason, state });
   }
+  if (spawn.worker_id !== plan.source_worker_id || typeof spawn.native_session_id !== "string" || spawn.native_session_id.length === 0) throw new TypeError("accepted spawn identity does not match same-worker plan");
   state = await persist(persist_state, transitionHostState(state, { type: "spawn_observed", claim_key: plan.claim_key, worker_id: spawn.worker_id, native_session_id: spawn.native_session_id, evidence_ref: spawn.response_ref }));
   if (spawn.native_session_id === plan.source_native_session_id) {
     state = await persist(persist_state, transitionHostState(state, { type: "reconciliation_required", reason_code: "spawn_reused_source_session", evidence_ref: spawn.response_ref }));
     return Object.freeze({ outcome: "reconciliation_required", reason_code: "spawn_reused_source_session", state });
   }
+  if (recovery_barrier) await recovery_barrier.afterSpawn({ state, plan, spawn });
   try {
     const checkpoint = acknowledgeSameWorkerRespawn({ checkpoint: state.task_checkpoint, plan, new_native_session_id: spawn.native_session_id });
     state = await persist(persist_state, transitionHostState(state, { type: "action_acknowledged", claim_key: plan.claim_key, task_checkpoint: checkpoint, worker_id: spawn.worker_id, native_session_id: spawn.native_session_id, evidence_ref: spawn.response_ref }));
@@ -41,7 +44,7 @@ export async function runSameWorkerRecovery({ host_state, termination_evidence, 
   return Object.freeze({ outcome: "spawned", reason_code: "same_worker_rollover_acknowledged", state });
 }
 
-export async function runCrossWorkerRecovery({ host_state, termination_evidence, runtime_facts, policy, transport, persist_state, task, worker_state, routing_policy = {} } = {}) {
+export async function runCrossWorkerRecovery({ host_state, termination_evidence, runtime_facts, policy, transport, persist_state, task, worker_state, routing_policy = {}, recovery_barrier } = {}) {
   let state = validateHostState(host_state); if (state.phase !== "observing") throw new TypeError("host must be observing");
   const termination = classifySessionTermination({ checkpoint: state.task_checkpoint, termination_evidence });
   const attemptedWorkers = state.receipts.filter(({ event }) => event === "action_acknowledged").map(({ worker_id }) => worker_id).filter(Boolean);
@@ -52,9 +55,12 @@ export async function runCrossWorkerRecovery({ host_state, termination_evidence,
   if (!preflight.execution_allowed) { const type = preflight.decision === "human_required" ? "human_required" : "reconciliation_required"; state = await persist(persist_state, transitionHostState(state, { type, reason_code: preflight.reason_code, evidence_ref: null })); return Object.freeze({ outcome: preflight.decision, reason_code: preflight.reason_code, state }); }
   state = await persist(persist_state, transitionHostState(state, { type: "action_planned", action: plan }));
   state = await persist(persist_state, transitionHostState(state, { type: "action_started", claim_key: plan.claim_key }));
+  if (recovery_barrier) await recovery_barrier.reserve({ state, plan });
   const spawn = await transport.spawn(plan);
   if (spawn.acknowledgement !== "accepted") { const reason = spawn.acknowledgement === "unknown" ? "spawn_acknowledgement_unknown" : "spawn_rejected"; state = await persist(persist_state, transitionHostState(state, { type: "reconciliation_required", reason_code: reason, evidence_ref: spawn.response_ref })); return Object.freeze({ outcome: "reconciliation_required", reason_code: reason, state }); }
+  if (spawn.worker_id !== plan.target_worker_id || typeof spawn.native_session_id !== "string" || spawn.native_session_id.length === 0) throw new TypeError("accepted spawn identity does not match cross-worker plan");
   state = await persist(persist_state, transitionHostState(state, { type: "spawn_observed", claim_key: plan.claim_key, worker_id: spawn.worker_id, native_session_id: spawn.native_session_id, evidence_ref: spawn.response_ref }));
+  if (recovery_barrier) await recovery_barrier.afterSpawn({ state, plan, spawn });
   try {
     const checkpoint = acknowledgeCrossWorkerRecovery({ checkpoint: state.task_checkpoint, plan, new_native_session_id: spawn.native_session_id });
     state = await persist(persist_state, transitionHostState(state, { type: "action_acknowledged", claim_key: plan.claim_key, task_checkpoint: checkpoint, worker_id: spawn.worker_id, native_session_id: spawn.native_session_id, evidence_ref: spawn.response_ref }));

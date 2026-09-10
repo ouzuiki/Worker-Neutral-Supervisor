@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN",
+  "normative_owner": "Worker-Neutral-Supervisor",
+  "source_commit": "b556c821dd61d3c5935bcd87e6fadd0415359b00",
+  "host_repo": "Worker-Neutral-Supervisor-Host",
+  "host_baseline_commit": "dd3326ed56f2c30ceb67f8a37f85d9871a900196",
+  "relationship": "mechanical_runtime_extraction",
+  "projection": "non_authoritative_pinned",
+  "runtime_coupling": false,
+  "live_cutover": false
+}

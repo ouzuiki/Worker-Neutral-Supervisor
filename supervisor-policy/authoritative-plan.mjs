@@ -139,6 +139,27 @@ function normalizePlan(plan) {
     }
   }
 
+  const authorizedGateSet = new Set(authorizedGates);
+  const completedGateSet = new Set(completedGates);
+  const blockedGateSet = new Set(blockedGates);
+  for (const gateId of gates) {
+    const memberships = [authorizedGateSet.has(gateId), completedGateSet.has(gateId), blockedGateSet.has(gateId)]
+      .filter(Boolean).length;
+    if (memberships > 1) {
+      throw new TypeError(`gate must not appear in more than one of authorized_gates/completed_gates/blocked_gates: ${gateId}`);
+    }
+  }
+
+  const requiresByGate = new Map(dependencies.map((dependency) => [dependency.gate_id, dependency.requires]));
+  for (const gateId of authorizedGates) {
+    const requires = requiresByGate.get(gateId) ?? [];
+    for (const requiredGateId of requires) {
+      if (!completedGateSet.has(requiredGateId)) {
+        throw new TypeError(`plan.authorized_gates contains gate with unmet dependency: ${gateId} requires ${requiredGateId}`);
+      }
+    }
+  }
+
   if (!Array.isArray(plan.amendment_history)) throw new TypeError("plan.amendment_history must be an array");
   const amendmentHistory = plan.amendment_history.map((record, index) => normalizeAmendmentRecord(record, index));
 
@@ -157,10 +178,14 @@ function normalizePlan(plan) {
 /**
  * Validate a candidate AuthoritativePlan against the exact WNS schema:
  * strict key set, trimmed unique gate IDs, dependency graph integrity
- * (no unknown refs, no self dependency, no cycles). Returns a deep-frozen,
- * copy-safe plan. Throws on any structural violation. Never mutates input.
+ * (no unknown refs, no self dependency, no cycles). Fails closed if any
+ * authorized gate has an unmet dependency, or if a gate appears in more
+ * than one of authorized_gates/completed_gates/blocked_gates. Returns a
+ * deep-frozen, copy-safe plan. Throws on any structural violation. Never
+ * mutates input.
  *
- * This validates graph integrity only; it is not a scheduler or optimizer.
+ * This validates graph integrity and gate-state consistency only; it does
+ * not infer or schedule next gates, and it is not a scheduler or optimizer.
  */
 export function validateAuthoritativePlan(plan) {
   const normalized = normalizePlan(plan);

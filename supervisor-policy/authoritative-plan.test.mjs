@@ -92,6 +92,99 @@ test("unknown gate reference in blocked_gates is rejected", () => {
   );
 });
 
+// --- gate-state consistency and dependency fencing ---
+
+test("gate overlapping authorized_gates and completed_gates is rejected", () => {
+  assert.throws(
+    () => validateAuthoritativePlan(basePlan({
+      authorized_gates: ["gate-a"],
+      completed_gates: ["gate-a"],
+      blocked_gates: ["gate-b", "gate-c"],
+    })),
+    TypeError,
+  );
+});
+
+test("gate overlapping authorized_gates and blocked_gates is rejected", () => {
+  assert.throws(
+    () => validateAuthoritativePlan(basePlan({
+      authorized_gates: ["gate-b"],
+      completed_gates: ["gate-a"],
+      blocked_gates: ["gate-b", "gate-c"],
+      dependencies: [{ gate_id: "gate-b", requires: ["gate-a"] }],
+    })),
+    TypeError,
+  );
+});
+
+test("gate overlapping completed_gates and blocked_gates is rejected", () => {
+  assert.throws(
+    () => validateAuthoritativePlan(basePlan({
+      authorized_gates: [],
+      completed_gates: ["gate-b"],
+      blocked_gates: ["gate-b", "gate-c"],
+    })),
+    TypeError,
+  );
+});
+
+test("authorized gate with all dependencies completed is accepted", () => {
+  const plan = validateAuthoritativePlan(basePlan({
+    authorized_gates: ["gate-b"],
+    completed_gates: ["gate-a"],
+    blocked_gates: ["gate-c"],
+    dependencies: [{ gate_id: "gate-b", requires: ["gate-a"] }],
+  }));
+  assert.deepEqual(plan.authorized_gates, ["gate-b"]);
+});
+
+test("authorized gate with an unmet dependency is rejected", () => {
+  assert.throws(
+    () => validateAuthoritativePlan(basePlan({
+      authorized_gates: ["gate-b"],
+      completed_gates: [],
+      blocked_gates: ["gate-c"],
+      dependencies: [{ gate_id: "gate-b", requires: ["gate-a"] }],
+    })),
+    TypeError,
+  );
+});
+
+test("authorized gate with a partially met multi-dependency set is rejected", () => {
+  assert.throws(
+    () => validateAuthoritativePlan(basePlan({
+      gates: ["gate-a", "gate-b", "gate-c"],
+      authorized_gates: ["gate-c"],
+      completed_gates: ["gate-a"],
+      blocked_gates: [],
+      dependencies: [{ gate_id: "gate-c", requires: ["gate-a", "gate-b"] }],
+    })),
+    TypeError,
+  );
+});
+
+test("zero-dependency authorized gate is accepted", () => {
+  const plan = validateAuthoritativePlan(basePlan({
+    authorized_gates: ["gate-a"],
+    completed_gates: [],
+    blocked_gates: ["gate-b", "gate-c"],
+    dependencies: [{ gate_id: "gate-b", requires: ["gate-a"] }],
+  }));
+  assert.deepEqual(plan.authorized_gates, ["gate-a"]);
+});
+
+test("dependency fencing and state-overlap checks do not mutate the input plan", () => {
+  const input = basePlan({
+    authorized_gates: ["gate-b"],
+    completed_gates: [],
+    blocked_gates: ["gate-c"],
+    dependencies: [{ gate_id: "gate-b", requires: ["gate-a"] }],
+  });
+  const snapshot = JSON.parse(JSON.stringify(input));
+  assert.throws(() => validateAuthoritativePlan(input), TypeError);
+  assert.deepEqual(input, snapshot);
+});
+
 // --- dependencies ---
 
 test("duplicate dependency entry for same gate_id is rejected", () => {
@@ -442,14 +535,15 @@ test("progressive disclosure rejects a gate not present in the plan at all", () 
   assert.throws(() => createWorkerPlanContext(plan, "gate-z"), TypeError);
 });
 
-test("progressive disclosure filters the current gate out of blocked_downstream and preserves order", () => {
+test("progressive disclosure exposes blocked_downstream in plan order", () => {
   const plan = basePlan({
-    gates: ["gate-a", "gate-b", "gate-c"],
+    gates: ["gate-a", "gate-b", "gate-c", "gate-d"],
+    dependencies: [],
     authorized_gates: ["gate-b"],
-    blocked_gates: ["gate-c", "gate-b"],
+    blocked_gates: ["gate-c", "gate-d"],
   });
   const context = createWorkerPlanContext(plan, "gate-b");
-  assert.deepEqual(context.blocked_downstream, ["gate-c"]);
+  assert.deepEqual(context.blocked_downstream, ["gate-c", "gate-d"]);
   assert.equal(context.amendment_instruction, "If execution evidence reveals a missing dependency, submit PROPOSE_PLAN_AMENDMENT. Do not silently change the plan.");
 });
 

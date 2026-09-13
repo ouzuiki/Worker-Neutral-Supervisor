@@ -1,12 +1,12 @@
 {
   "contract_id": "worker-neutral-supervisor-runtime",
-  "contract_version": "0.13.0",
-  "status": "always-on-host-deployed-shd4-live-gate-pending",
+  "contract_version": "0.14.0",
+  "status": "always-on-host-deployed-shd4-v2-executed-strict-closure-unproven",
   "current_mode": {
     "supervision": "ChatGPT/manual-supervisor active",
-    "autonomous_supervisor_host": "SHD-1 through SHD-3 CLOSED/PASS for the deployed always-on user service; SHD-4/v1 FROZEN / READY_FOR_LIVE_GATE with evidence pending"
+    "autonomous_supervisor_host": "SHD-1 through SHD-3 CLOSED/PASS for the deployed always-on user service; SHD-4/v2 attempt executed with operational recovery observed but strict PASS/CLOSED unproven"
   },
-  "phase_status": "Worker Liveness Phase 1 = POLICY READY / LIVE HOST QUALIFIED / ALWAYS-ON USER SERVICE DEPLOYED / SHD-4 LIVE GATE PENDING",
+  "phase_status": "Worker Liveness Phase 1 = POLICY READY / LIVE HOST QUALIFIED / ALWAYS-ON USER SERVICE DEPLOYED / SHD-4/v2 EXECUTED / STRICT CLOSURE UNPROVEN",
   "future_host_boundary": {
     "responsibility_sequence": "start -> observe -> policy evaluation -> control -> terminal/reconcile",
     "bridges_provide": "facts and control primitives",
@@ -218,11 +218,13 @@
     "restart_policy": "Restart=on-failure restarts the Host only",
     "startup_scope": "login/user-manager semantics; logout and reboot survival are not claimed",
     "shd4": {
-      "contract_id": "SHD-4/v1",
-      "status": "frozen-v1-ready-for-live-gate",
-      "contract": "worker-neutral/supervisor-runtime/SHD-4-CONTRACT-v1.md",
-      "future_evidence": "worker-neutral/supervisor-runtime/shd4-host-sigkill-live-smoke-evidence.v1.json",
-      "evidence": "pending"
+      "local_contract_id": "SHD-4/v1",
+      "local_contract": "worker-neutral/supervisor-runtime/SHD-4-CONTRACT-v1.md",
+      "host_successor_contract_id": "SHD-4/v2",
+      "host_reference": "worker-neutral/supervisor-runtime/host-repository-reference.v1.json",
+      "attempt_status": "executed-operational-recovery-observed",
+      "strict_closure": "NOT_AUTHORITATIVELY_PASS_CLOSED",
+      "strict_closure_blocker": "attempt-time Host executable/cmdline identity and contract-complete original v2 verdict artifact do not survive"
     }
   },
   "invariants": [
@@ -231,7 +233,7 @@
     "The deployed always-on Supervisor Host service does not introduce Bridge changes or Bridge implementation ownership.",
     "LSH-5 crash/restart tests and live smoke are supporting analog evidence for reconciliation and stale-lock mechanics; they are not proof of the SHD-4 real always-on Host SIGKILL gate.",
     "Host restartability never implies Bridge restartability.",
-    "SHD-4 evidence is pending; frozen-v1-ready-for-live-gate is not CLOSED/PASS."
+    "SHD-4/v2 operational recovery was observed, but missing attempt-time identity and contract-complete original verdict evidence prevent authoritative PASS/CLOSED."
   ],
   "reopen_triggers": [
     "frequent manual observe or steer burden",

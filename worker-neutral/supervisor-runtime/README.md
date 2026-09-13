@@ -219,15 +219,17 @@ only, not logout or reboot survival.
 
 ## SHD-4 real Host SIGKILL continuation
 
-`SHD-4-CONTRACT-v1.md` is the authoritative **FROZEN /
-READY_FOR_LIVE_GATE** acceptance contract for one future real `SIGKILL` of the
-always-on Supervisor Host service `MainPID`. The live evidence is pending, so
-SHD-4 is not CLOSED/PASS. Its primary gate begins only after an accepted native
-spawn/effect is durably recorded in `awaiting_ack`, then requires automatic
-systemd recovery, exact same-session reconciliation before any retry, zero
-post-restart spawn calls, and an unchanged disposable fixture and baseline.
+`SHD-4-CONTRACT-v1.md` remains the local frozen v1 acceptance boundary. The
+separate Host repository subsequently froze SHD-4/v2 and executed attempt
+`shd4-v2-20260912T201643Z-13847781` with durable one-shot authorization.
+Automatic Host recovery and durable reconciliation were observed, but the
+Host's post-hoc reconciliation is **NOT AUTHORITATIVELY PASS/CLOSED**: PID
+379404's attempt-time executable/cmdline identity and a contract-complete
+original v2 verdict artifact do not survive. The non-authoritative repository
+projection and pinned Host commit are recorded in
+`host-repository-reference.v1.json`; no fresh destructive attempt is authorized.
 
 LSH-5 tests and live-smoke evidence remain supporting analog evidence for
 accepted-effect reconciliation and ESRCH-confirmed stale-lock recovery only.
-They do not prove the exact SHD-4 real always-on Host SIGKILL gate. Host
+They do not repair the missing v2 evidence or prove strict SHD-4 closure. Host
 restartability never implies Bridge restartability.

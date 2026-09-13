@@ -4,9 +4,16 @@
   "normative_owner": "Worker-Neutral-Supervisor",
   "source_commit": "b556c821dd61d3c5935bcd87e6fadd0415359b00",
   "host_repo": "Worker-Neutral-Supervisor-Host",
-  "host_baseline_commit": "dd3326ed56f2c30ceb67f8a37f85d9871a900196",
+  "host_baseline_commit": "efb8e9063d5194790093d3d6b234810a81dbb6e8",
   "relationship": "mechanical_runtime_extraction",
   "projection": "non_authoritative_pinned",
   "runtime_coupling": false,
-  "live_cutover": false
+  "live_cutover": false,
+  "shd4_v2_projection": {
+    "attempt_executed": true,
+    "operational_recovery_observed": true,
+    "strict_closure": "NOT_AUTHORITATIVELY_PASS_CLOSED",
+    "reason": "attempt-time Host executable/cmdline identity and a contract-complete original v2 verdict artifact do not survive",
+    "host_record": "worker-neutral/supervisor-runtime/shd4-v2-post-hoc-reconciliation.v1.json"
+  }
 }

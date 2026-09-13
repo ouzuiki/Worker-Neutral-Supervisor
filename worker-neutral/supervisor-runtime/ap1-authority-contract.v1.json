@@ -1,0 +1,62 @@
+{
+  "contract_id": "worker-neutral-durable-authority-provenance",
+  "contract_version": "1.0.0",
+  "gate": "AP-1",
+  "status": "policy-ready-no-host-runtime",
+  "owner": "supervisor",
+  "implementation": "supervisor-policy/durable-authority.mjs",
+  "supersedes": null,
+  "relationship_to_durable_task_continuation": "separate versioned object, referenced by authority_id; not merged into contract.v0.json's durable_task_continuation block",
+  "core_invariant": "absence of original Human authorization text in a fresh session must not by itself invalidate a still-valid AuthorityRecord",
+  "authority_record_fields": [
+    "authority_version",
+    "authority_id",
+    "task_id",
+    "durable_attempt_id",
+    "authority_epoch",
+    "scope",
+    "status",
+    "granted_at",
+    "expires_at",
+    "revoked_at",
+    "provenance.{receipt_ref,granted_by}"
+  ],
+  "evaluation_request_fields": [
+    "task_id",
+    "durable_attempt_id",
+    "required_authority_epoch",
+    "requested_scope",
+    "evaluated_at"
+  ],
+  "operations": [
+    "evaluateDurableAuthority",
+    "validateAuthorityRecord",
+    "validateEvaluationRequest",
+    "createAuthorityProjection"
+  ],
+  "authority_projection_version": 1,
+  "authority_projection_fields": [
+    "projection_version",
+    "record",
+    "request",
+    "evaluation"
+  ],
+  "minimal_scope_tokens": [
+    "resume_task"
+  ],
+  "reason_codes": [
+    "authority_absent",
+    "task_mismatch",
+    "attempt_mismatch",
+    "epoch_mismatch",
+    "authority_revoked",
+    "authority_expired",
+    "scope_exceeded",
+    "authority_valid"
+  ],
+  "future_host_boundary": {
+    "host_responsibilities": "persist AuthorityRecord objects, structurally validate against this schema, fence authority_epoch writes, project records to workers",
+    "host_does_not": "derive/compute authorized vs human_required itself, require or store original chat transcript text",
+    "host_may": "mechanically dispatch on the exact WNS-produced evaluation.decision (authorized -> attach projection and continue; human_required -> stop and escalate using evaluation.reason_code)"
+  }
+}

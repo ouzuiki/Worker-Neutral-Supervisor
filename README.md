@@ -33,6 +33,14 @@ that path is never a hard runtime dependency of any bridge.
   contract for evidence, derived judgment, candidate state, promotion, authority,
   correction/supersession, and provenance. v0 is semantic-contract-only and adds
   no runtime, datastore, or Bridge dependency.
+- `worker-neutral/convergence/` — the worker-neutral semantic-convergence
+  contract (SK-1): current-state intent-vs-reality findings, candidate
+  residual work-item conversion, and derived convergence certificates. The
+  certificate is a verification judgment only; final close authority remains
+  the completion gate.
+- `worker-neutral/design-skill/` — the WNS-owned, worker-neutral Design Skill
+  v1 for non-trivial UI/UX work. Its local contract is authoritative within
+  the skill; the Apple SK2 document is non-authoritative reference material.
 - `scripts/archify-safe.mjs` + `test/archify-safe.test.mjs` — the standalone,
   worker-neutral archify-safe wrapper and its deterministic test suite.
 - `reference-crosswalk/` — cross-worker reference audits and closeout records.

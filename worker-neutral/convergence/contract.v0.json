@@ -1,0 +1,56 @@
+{
+  "contractId": "worker-neutral-convergence",
+  "contractVersion": "0.1.0",
+  "status": "frozen-v0",
+  "owner": "Supervisor",
+  "purpose": "current-state semantic convergence of authoritative intent vs observed reality, not Git diff/history",
+  "finding": {
+    "required_fields": ["finding_id", "source_ref", "gap_type", "severity", "evidence", "remediation", "verifier", "status"],
+    "closed_enums": {
+      "gap_type": ["missing", "partial", "contradicts", "unrequested"],
+      "severity": ["critical", "high", "medium", "low"],
+      "status": ["open", "resolved", "superseded"]
+    }
+  },
+  "monotonic_rule": {
+    "statement": "findings/history are append-only evidence; current state is a projection; no silent delete/rewrite"
+  },
+  "evidence_refs": {
+    "rule": "evidence refs use stable locators/hashes and reuse Evidence-to-State semantics",
+    "refs": ["../evidence-to-state/evidence-to-state-contract.v0.json"]
+  },
+  "residual_to_work_item_rule": {
+    "statement": "only an open finding can generate a candidate work item carrying finding_id/source_ref/remediation/evidence_refs; conversion neither resolves the finding nor authorizes execution/promotion"
+  },
+  "evaluator_executor_separation": {
+    "statement": "executor may produce evidence/remediation but cannot issue final convergence certificate for its own attempt",
+    "final_verifier_rule": "final verifier role may only be 'supervisor' or 'independent_verifier'; when executor_id is supplied, final verifier.id MUST differ from that executor identity regardless of whether the verifier role is 'supervisor' or 'independent_verifier'"
+  },
+  "certificate": {
+    "required_fields": ["certificate_version", "task_id", "intent_refs", "verification_scope", "finding_refs", "open_finding_ids", "evidence_refs", "verifier", "verdict"],
+    "verdict": ["converged", "not_converged"],
+    "converged_proof_requirements": [
+      "nonempty intent_refs",
+      "verification_scope.coverage == 'complete'",
+      "zero open_finding_ids within evaluated scope",
+      "nonempty stable evidence_refs",
+      "verifier role authorized",
+      "no self-certification regardless of verifier role"
+    ],
+    "set_coverage_rule": "set-like identity/reference arrays (finding_refs, open_finding_ids, verification_scope.source_refs, and the finding_id values of supplied findings) MUST NOT contain duplicates; duplicates are rejected rather than deduplicated so they cannot fake exact set coverage",
+    "scope": "certificate is derived verification judgment only; it does not close task; final close still requires existing completion gate acceptance='verified' and other requirements"
+  },
+  "non_goals": [
+    "workflow engine",
+    "datastore/event runtime",
+    "Host/Bridge responsibility",
+    "automatic repair",
+    "automatic promotion",
+    "Spec Kit dependency",
+    "SK-2 cursor"
+  ],
+  "references": [
+    "../evidence-to-state/evidence-to-state-contract.v0.json",
+    "../../supervisor-policy/completion-gate.mjs"
+  ]
+}

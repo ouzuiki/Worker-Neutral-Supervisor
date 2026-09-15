@@ -93,12 +93,6 @@ test("normalizeTelemetryEvent keeps only the allowlisted fields and drops every 
     "task_class",
     "tokens",
     "worker",
-    "stall_detected",
-    "stall_reason",
-    "stall_pattern",
-    "recovery_action",
-    "recovery_count",
-    "post_recovery_progress",
   ].sort());
 
   assert.equal(normalized.worker, "codex");
@@ -107,9 +101,6 @@ test("normalizeTelemetryEvent keeps only the allowlisted fields and drops every 
   assert.deepEqual(normalized.tokens, { value: 1234, source: "native" });
   assert.deepEqual(normalized.cost_usd, { value: 0.05, source: "native" });
   assert.deepEqual(normalized.quota_window_snapshot, { primary: "normal", secondary: "caution" });
-  assert.equal(normalized.stall_reason, "reasoning_only_no_progress");
-  assert.equal(normalized.stall_pattern, null);
-  assert.equal(normalized.recovery_action, "retry_fresh_run");
 });
 
 test("normalizeTelemetryEvent marks missing cost/token/enum fields as unknown rather than fabricating values", () => {
@@ -123,38 +114,6 @@ test("normalizeTelemetryEvent marks missing cost/token/enum fields as unknown ra
   assert.equal(normalized.duration_ms, null);
   assert.equal(normalized.routing_reason, "unknown");
   assert.deepEqual(normalized.quota_window_snapshot, {});
-  assert.equal(normalized.stall_detected, false);
-  assert.equal(normalized.stall_reason, null);
-  assert.equal(normalized.stall_pattern, null);
-  assert.equal(normalized.recovery_action, null);
-  assert.equal(normalized.recovery_count, 0);
-  assert.equal(normalized.post_recovery_progress, false);
-});
-
-test("WL4 enums are allowlisted and inconsistent or arbitrary labels cannot pass through", () => {
-  const noStall = normalizeTelemetryEvent({
-    stall_detected: false,
-    stall_reason: "reasoning_only_no_progress",
-    recovery_action: "ARBITRARY_RECOVERY_REASON_TEXT",
-    recovery_count: -1,
-  });
-  assert.equal(noStall.stall_reason, null);
-  assert.equal(noStall.recovery_action, null);
-  assert.equal(noStall.recovery_count, 0);
-
-  const malformed = normalizeTelemetryEvent({
-    stall_detected: true,
-    stall_reason: "ARBITRARY_STALL_REASON_TEXT",
-    recovery_action: { raw: "PAYLOAD" },
-    recovery_count: "1",
-    post_recovery_progress: true,
-  });
-  assert.equal(malformed.stall_reason, null);
-  assert.equal(malformed.recovery_action, null);
-  assert.equal(malformed.recovery_count, 0);
-  assert.equal(malformed.post_recovery_progress, false);
-  assert.equal(JSON.stringify(malformed).includes("ARBITRARY"), false);
-  assert.equal(JSON.stringify(malformed).includes("PAYLOAD"), false);
 });
 
 test("normalizeTelemetryEvent rejects unsafe worker/task_class/result values by falling back to a safe default", () => {
@@ -194,8 +153,8 @@ test("normalizeTelemetryEvent drops quota_window_snapshot entries with an unknow
 
 test("aggregateTelemetry groups deterministically by worker+task_class regardless of input order", () => {
   const events = [
-    { worker: "codex", task_class: "general_engineering", result: "success", duration_ms: 100, cost_usd: 0.1, stall_detected: true, stall_reason: "reasoning_only_no_progress", recovery_action: "soft_steer", recovery_count: 1 },
-    { worker: "codex", task_class: "general_engineering", result: "failure", duration_ms: 300, post_recovery_progress: true },
+    { worker: "codex", task_class: "general_engineering", result: "success", duration_ms: 100, cost_usd: 0.1 },
+    { worker: "codex", task_class: "general_engineering", result: "failure", duration_ms: 300 },
     { worker: "claude", task_class: "expert_review", result: "success", duration_ms: 200, fallback_used: true },
   ];
   const reversedEvents = [...events].reverse();
@@ -213,10 +172,6 @@ test("aggregateTelemetry groups deterministically by worker+task_class regardles
   assert.equal(codexRow.known_cost_usd_sum, 0.1);
   assert.equal(codexRow.known_cost_event_count, 1);
   assert.equal(codexRow.unknown_cost_event_count, 1);
-  assert.equal(codexRow.stall_count, 1);
-  assert.equal(codexRow.recovery_used_count, 1);
-  assert.equal(codexRow.post_recovery_progress_count, 1);
-  assert.equal(codexRow.post_recovery_progress_rate, 0.5);
 
   const claudeRow = report.find((row) => row.worker === "claude" && row.task_class === "expert_review");
   assert.equal(claudeRow.fallback_count, 1);

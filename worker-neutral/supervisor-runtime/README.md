@@ -1,5 +1,13 @@
 # Supervisor Runtime Contract
 
+> **WCSR ownership notice (2026-09-16):** WNS owns the worker-neutral contracts
+> and deterministic policy described here. The executable mechanical Host,
+> Bridge launch/adaptation, endpoint resolution, observation decoding,
+> checkpoint storage, reconciliation, and service lifecycle are owned by the
+> `Worker-Neutral-Supervisor-Host` repository. The mechanical files and live
+> evidence retained in this directory are historical qualification material,
+> not a second deployable Host implementation.
+
 `contract.v0.json` is the canonical worker-neutral boundary record. ASR-1 freezes
 its `durable_task_continuation` interface; it does not introduce a Supervisor
 host, datastore, workflow engine, or automatic recovery behavior.

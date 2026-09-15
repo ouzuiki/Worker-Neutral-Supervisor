@@ -1,7 +1,7 @@
 # Tri-Bridge External Reference Crosswalk
 
-**Status:** REF-P0 CLOSED; REF-P1 CLOSED; Agent Skills Native Adoption CLOSED; Supervisor Operational Wiring CLOSED; WeChat Intelligence Hub Pattern Mining CLOSED  
-**Audit date:** 2026-09-07  
+**Status:** REF-P0 CLOSED; REF-P1 CLOSED; Agent Skills Native Adoption CLOSED; Supervisor Operational Wiring CLOSED; WeChat Intelligence Hub Pattern Mining CLOSED; CLAUDE-BLOG-R1 backlog integrated  
+**Audit date:** 2026-09-07 (CLAUDE-BLOG-R1 delta added 2026-09-15)  
 **Original P0-P3 validation baseline:** `550796c03054369b5ac96ba7cad8b3851a2ca2a5` (`P3 CLOSED`)  
 **Purpose:** validate and harden the existing P0-P3 architecture against mature agent/runtime references without importing framework complexity by default.
 
@@ -49,6 +49,19 @@ Evidence
 ```
 
 The resulting contract is semantic-only and preserves the ordinary-task fast path; no new runtime, datastore, Bridge round trip, or mandatory raw-evidence persistence was added.
+
+## CLAUDE-BLOG-R1 — production agent architecture delta backlog
+
+`CLAUDE-BLOG-R1-PRODUCTION-AGENT-ARCHITECTURE.md` records the 2026-09-15 reference audit delta against recent production-agent architecture patterns.
+
+The five retained items are backlog/contract guidance only:
+
+- **P0 contract backlog:** `CBR1-OBS` Shared Runtime Evidence, `CBR1-CON` Execution Conservation Invariant, `CBR1-PROVIDER` Provider Optimization Boundary.
+- **P1 freeze-only:** `CBR1-LP` Learning Promotion Contract, `CBR1-ID` Execution Principal Concept.
+
+P0 does **not** authorize immediate implementation. P1 remains deliberately deferred. None of the five is classified as a current `CONFIRMED_GAP`, and no `CLAUDE-BLOG-R2` implementation line is opened.
+
+The audit is explicitly reuse-first: it must extend or reference existing OR-1/AP-1/EP-1/SK-1/Evidence-to-State/ASR-LSH-SHD primitives rather than creating duplicate authority, workflow, telemetry, promotion, or recovery systems. WNS remains the sole normative owner of worker-neutral policy/contracts; the separate Host repository remains mechanical and receives no duplicate policy copy from this audit.
 
 ## Post-REF-P1 native adoption
 
